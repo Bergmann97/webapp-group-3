@@ -1,0 +1,13 @@
+{
+    "recommendations": [
+        "dbaeumer.vscode-eslint",
+        "mhutchie.git-graph",
+        "ecmel.vscode-html-css",
+        "cmstead.jsrefactor",
+        "sonarsource.sonarlint-vscode",
+        "redhat.vscode-xml",
+        "firefox-devtools.vscode-firefox-debug",
+        "esbenp.prettier-vscode",
+        "dominicvonk.parameter-hints"
+    ]
+}
