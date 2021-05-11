@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Public Library</title>
+    <meta
+      name="description"
+      content="A plain JS app with constraint validation."
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#ffffff" />
+
+    <link rel="icon" href="favicon.svg" />
+    <link rel="mask-icon" href="mask-icon.svg" color="#000000" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <link rel="manifest" href="manifest.json" />
+
+    <link rel="stylesheet" href="assignment4/css/normalize.css" />
+    <link rel="stylesheet" href="assignment4/css/main.css" />
+
+    <script type="module">
+      import { clearData, generateTestData } from ".assignment4/src/c/app.mjs";
+      const clearButton = document.getElementById("clearData"),
+        generateTestDataButtons = document.querySelectorAll("button.generateTestData");
+      // Set event handlers for the buttons "clearData" and "generateTestData"
+      clearButton.addEventListener("click", clearData);
+      for (const btn of generateTestDataButtons) {
+        btn.addEventListener("click", generateTestData);
+      }
+    </script>
+  </head>
+
+  <body>
+    <header>
+      <div class="wrapper clearfix">
+        <div class="title">
+          <h1>Movie Database</h1>
+          <h2>Manage information about movies and persons</h2>
+        </div>
+        <nav>
+          <ul>
+            <li><a href="mainMovie.html">Movie</a></li>
+            <li><a href="mainPerson.html">Person</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+    <main>
+      <div class="wrapper clearfix">
+        <p>This app supports the following managing options:</p>
+        <div class="two-col-menu">
+          <menu class="crud">
+            <li><a href="mainMovie.html">Manage movie data</a></li>
+            <li><a href="mainPerson.html">Manage person data</a></li>
+          </menu>
+          <menu>
+            <li>
+              <button type="button" id="clearData">Clear database</button>
+            </li>
+            <li><button type="button" class="generateTestData">Generate test data</button></li>
+          </menu>
+        </div>
+      </div>
+    </main>
+    <footer>
+      <div class="foot-content wrapper">
+        This is the assignment application built on the tutorial for the course
+        12431 Web Applications | SS 2021. Students: Christian Prinz - B.Sc
+        Informations- und Medientechnik and Max Bergmann B.Sc Computer Science
+      </div>
+    </footer>
+  </body>
+</html>
