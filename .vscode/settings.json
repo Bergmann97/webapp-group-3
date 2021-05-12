@@ -1,0 +1,6 @@
+{
+    "javascript.format.semicolons": "insert",
+    "js/ts.implicitProjectConfig.checkJs": true,
+    "eslint.format.enable": true,
+    "eslint.lintTask.enable": true
+}
