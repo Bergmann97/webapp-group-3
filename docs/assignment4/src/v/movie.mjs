@@ -10,7 +10,10 @@ MovieStorage.retrieveAll();
 
 // set up back-to-menu buttons for all CRUD UIs
 for (const btn of document.querySelectorAll("button.back-to-menu")) {
-  btn.addEventListener("click", refreshManageDataUI);
+    btn.addEventListener( "click", function () {
+      refreshManageDataUI();
+      document.querySelector("section#Movie-U > form").querySelector(".MultiChoiceWidget").innerHTML = "";
+    });
 }
 // neutralize the submit event for all CRUD UIs
 for (const frm of document.querySelectorAll("section > form")) {
@@ -19,6 +22,13 @@ for (const frm of document.querySelectorAll("section > form")) {
     frm.reset();
   });
 }
+
+// save data when leaving the page
+// window.addEventListener("beforeunload", MovieStorage.persist);
+
+window.addEventListener( "beforeunload", function () {
+  MovieStorage.persist();
+})
 
 // ------- RETRIEVE AND LIST ALL -------
 document.getElementById("retrieveAndListAll").addEventListener(
@@ -41,7 +51,11 @@ document.getElementById("retrieveAndListAll").addEventListener(
           row.insertCell().textContent = "";
         }
         row.insertCell().textContent = movie.director.name + " (ID:" +  movie.director.personId + ")";
-        row.insertCell().appendChild( actorsListEl);
+        if (actorsListEl) {
+          row.insertCell().appendChild( actorsListEl);
+        } else {
+          row.insertCell().textContent = "";
+        }
     }
 });
 
@@ -228,9 +242,6 @@ deleteMovieFormEl["commit"].addEventListener("click", function () {
     deleteSelectMovieEl.remove(deleteSelectMovieEl.selectedIndex);
   }
 });
-
-// save data when leaving the page
-window.addEventListener("beforeunload", Movie.saveAll);
 
 function refreshManageDataUI() {
   // show the manage book UI and hide the other UIs

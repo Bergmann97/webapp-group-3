@@ -123,6 +123,7 @@ updateFormEl["commit"].addEventListener("click", function () {
   
   if (updateFormEl.checkValidity()) {
     PersonStorage.update( slots);
+    selectedUpdatePersonEl.options[selectedUpdatePersonEl.selectedIndex].text = slots.name;
   }
 });
 
@@ -149,7 +150,9 @@ deleteFormEl["commit"].addEventListener("click", function () {
 });
 
 // save data when leaving the page
-window.addEventListener("beforeunload", Person.saveAll);
+window.addEventListener("beforeunload", function () {
+  PersonStorage.persist();
+});
 
 function refreshManageDataUI() {
   // show the manage book UI and hide the other UIs
