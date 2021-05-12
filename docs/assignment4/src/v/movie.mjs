@@ -100,7 +100,7 @@ createMovieFormEl["commit"].addEventListener("click", function () {
     title: createTitleEl.value,
     releaseDate: createReleaseDateEl.value,
     director: selectDirectorEl.value,
-    actorsIdRefs: []
+    actors: []
   };
   // check all input fields and show error messages
   createMovieIdEl.setCustomValidity(
@@ -115,7 +115,7 @@ createMovieFormEl["commit"].addEventListener("click", function () {
   if (createMovieFormEl.checkValidity()) {
     // construct a list of author ID references
     for (const opt of selActOptions) {
-      slots.actorsIdRefs.push( opt.value);
+      slots.actors.push( opt.value);
     }
     MovieStorage.add( slots);
   }
