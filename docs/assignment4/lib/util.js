@@ -10,7 +10,7 @@
  * @param {object} obj to get a clone of
  * @returns {object} - the cloned object
  */
- export function cloneObject(obj) {
+export function cloneObject(obj) {
     var p = "";
     var val;
     var clone = Object.create(Object.getPrototypeOf(obj));
