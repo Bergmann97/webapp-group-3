@@ -93,7 +93,13 @@ export class Movie {
   */
   _director;
 
-  // TODO _actors;
+  /** the actors starring the movie
+   * - optional multiValue
+   * @private
+   * @type {{[key: number]: Person}}
+   */
+  _actors;
+
 
   /**
   * CONSTRUCTOR
@@ -104,6 +110,7 @@ export class Movie {
     title,
     releaseDate,
     director,
+    actors,
   }) {
     if (arguments.length > 0) {
       this.movieId = movieId;
@@ -114,6 +121,12 @@ export class Movie {
       }
       // @ts-ignore
       this.director = director;
+      if (actors) {
+        // @ts-ignore
+        this.actors = actors;
+      } else {
+        this.actors = [];
+      }
     }
   }
 
@@ -282,7 +295,79 @@ export class Movie {
 
   // *** actors ***************************************************************
 
-  // TODO
+  /** @ts-ignore @returns {{[key: number]: Person}} a Map of actors (*key = `person.Id`*) starring the movie */
+  get actors() {
+    return this._actors;
+  }
+
+  /** @ts-ignore @param {Person[] | number[] | {[key: number]: Person} | undefined} actors an array of `Person`s or an array of `personId`s or a `Map<personId, Person>` */
+  set actors(actors) {
+    // clear and add actors
+    this._actors = {};
+    this.addActors(actors);
+  }
+
+  /** @param {number} actor */
+  static checkActor(actor) {
+    return Person.checkPersonIdAsIdRef(actor);
+  }
+
+  /** @param {Person[] | number[] | {[key: number]: Person} | undefined} actors an array of `Person`s or an array of `personId`s or a `Map<personId, Person>` */
+  addActors(actors) {
+    if (Array.isArray(actors)) {
+      // array of IdRefs
+      for (let idRef of actors) {
+        this.addActor(idRef);
+      }
+    } else {
+      // map of IdRefs to object references
+      for (let idRef of Object.keys(actors)) {
+        this.addActor(actors[idRef]);
+      }
+    }
+  }
+
+  /** @param {Person | number} actor the `Person` or it's `personId` */
+  addActor(actor) {
+    // actor can be an ID reference or an object reference
+    const actor_id = typeof actor !== "object" ? actor : actor.personId;
+    const validationResult = Movie.checkActor(actor_id);
+    if (actor_id && validationResult instanceof NoConstraintViolation) {
+      // add the new actor reference
+      let key = String(actor_id);
+      this._actors[key] = PersonStorage.instances[key];
+    } else {
+      throw validationResult;
+    }
+  }
+
+  /** @param {Person[] | number[] | {[key: number]: Person} | undefined} actors an array of `Person`s or an array of `personId`s or a `Map<personId, Person>` */
+  removeActors(actors) {
+    if (Array.isArray(actors)) {
+      // array of IdRefs
+      for (let idRef of actors) {
+        this.removeActor(idRef);
+      }
+    } else {
+      // map of IdRefs to object references
+      for (let idRef of Object.keys(actors)) {
+        this.removeActor(actors[idRef]);
+      }
+    }
+  }
+
+  /** @param {Person | number} actor the `Person` or it's `personId` */
+  removeActor(actor) {
+    // a can be an ID reference or an object reference
+    const actor_id = typeof actor !== "object" ? actor : actor.personId;
+    const validationResult = Movie.checkActor(actor_id);
+    if (validationResult instanceof NoConstraintViolation) {
+      // delete the actor reference
+      delete this._actors[String(actor_id)];
+    } else {
+      throw validationResult;
+    }
+  }
 
   // *** serialization ********************************************************
 
@@ -299,7 +384,7 @@ export class Movie {
         title: slots.title,
         releaseDate: slots.releaseDate,
         director: slots.director,
-        // TODO actors
+        actors: slots.actors
       });
     } catch (e) {
       console.warn(
@@ -325,7 +410,13 @@ export class Movie {
           // convert object reference to ID reference
           rec.director = this._director.personId;
           break;
-        case "_actors": // TODO
+        case "_actors":
+          // convert the map of object references to a list of ID references
+          rec.actors = [];
+          Object.keys(this.actors).forEach((actorIdStr) => {
+            rec.actors.push(parseInt(actorIdStr));
+          });
+          break;
         default:
           // remove underscore prefix
           rec[p.substr(1)] = this[p];

@@ -65,6 +65,8 @@ class _MovieStorage {
       title,
       releaseDate,
       director,
+      actorsIdRefsToAdd,
+      actorsIdRefsToRemove
     } = slots;
     let noConstraintViolated = true;
     let updatedProperties = [];
@@ -107,7 +109,15 @@ class _MovieStorage {
         updatedProperties.push("director");
       }
 
-      // TODO actors
+      // actors
+      if (actorsIdRefsToAdd) {
+        movie.addActors(actorsIdRefsToAdd);
+        updatedProperties.push("actors(added)");
+      }
+      if (actorsIdRefsToRemove) {
+        movie.removeActors(actorsIdRefsToRemove);
+        updatedProperties.push("actors(removed)");
+      }
     } catch (e) {
       console.warn(`${e.constructor.name}: ${e.message}`);
       noConstraintViolated = false;
