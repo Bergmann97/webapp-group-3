@@ -7,5 +7,10 @@
   "trailingComma": "es5",
   "arrowParens": "always",
   "endOfLine": "auto",
-  "parser": "babel-ts"
+  "overrides": [
+    {
+      "files": ["*.js", "*.mjs"],
+      "parser": "babel-ts"
+    }
+  ]
 }

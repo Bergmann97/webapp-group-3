@@ -7,9 +7,9 @@ import { Movie } from "../m/Movie.js";
 import { MovieStorage } from "../m/MovieStorage.js";
 import { PersonStorage } from "../m/PersonStorage.js";
 
-// loading the data
-PersonStorage.retrieveAll();
-MovieStorage.retrieveAll();
+/******************************************************************************
+ *** UI ***********************************************************************
+ *****************************************************************************/
 
 // set up back-to-menu buttons for all CRUD UIs
 for (const btn of document.querySelectorAll("button.back-to-menu")) {
@@ -34,9 +34,25 @@ window.addEventListener("beforeunload", () => {
   MovieStorage.persist();
 });
 
+function refreshManageDataUI() {
+  // show the manage book UI and hide the other UIs
+  document.getElementById("Movie-M").style.display = "block";
+  document.getElementById("Movie-R").style.display = "none";
+  document.getElementById("Movie-C").style.display = "none";
+  document.getElementById("Movie-U").style.display = "none";
+  document.getElementById("Movie-D").style.display = "none";
+}
+
+// Set up Manage Book UI
+refreshManageDataUI();
+
 /******************************************************************************
  *** RETRIEVE AND LIST ********************************************************
  *****************************************************************************/
+
+// loading the data
+PersonStorage.retrieveAll();
+MovieStorage.retrieveAll();
 
 document.getElementById("retrieveAndListAll").addEventListener("click", () => {
   document.getElementById("Movie-M").style.display = "none";
@@ -302,15 +318,3 @@ deleteMovieFormEl["commit"].addEventListener("click", () => {
     deleteSelectMovieEl.remove(deleteSelectMovieEl.selectedIndex);
   }
 });
-
-function refreshManageDataUI() {
-  // show the manage book UI and hide the other UIs
-  document.getElementById("Movie-M").style.display = "block";
-  document.getElementById("Movie-R").style.display = "none";
-  document.getElementById("Movie-C").style.display = "none";
-  document.getElementById("Movie-U").style.display = "none";
-  document.getElementById("Movie-D").style.display = "none";
-}
-
-// Set up Manage Book UI
-refreshManageDataUI();

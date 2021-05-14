@@ -43,10 +43,16 @@
           <p>This app supports the following person managing options:</p>
           <div class="two-col-menu">
             <ul class="menu">
-              <li><button type="button", id="retrieveAndListAll">List all persons</button></li>
-              <li><button type="button", id="create">Create a person</button></li>
-              <li><button type="button", id="update">Update person</button></li>
-              <li><button type="button", id="destroy">Delete person</button></li>
+              <li>
+                <button type="button" id="retrieveAndListAll">
+                  List all persons
+                </button>
+              </li>
+              <li>
+                <button type="button" id="create">Create a person</button>
+              </li>
+              <li><button type="button" id="update">Update person</button></li>
+              <li><button type="button" id="destroy">Delete person</button></li>
             </ul>
           </div>
         </section>
@@ -55,28 +61,32 @@
           <table>
             <thead>
               <tr>
-                <th>Person ID</th>
-                <th>Name</th>
+                <th id="personId">Person ID</th>
+                <th id="name">Name</th>
               </tr>
             </thead>
             <tbody></tbody>
           </table>
           <div class="button">
-            <button type="button" class="back-to-menu">Back to person menu</button>
+            <button type="button" class="back-to-menu">
+              Back to person menu
+            </button>
           </div>
         </section>
         <section id="Person-C" class="UI-Page">
           <h1>Create a new person record</h1>
           <form>
             <div class="field">
-              <label>ID: <input type="number" name="personid"/></label>
+              <label>ID: <input type="number" name="personId" /></label>
             </div>
             <div class="field">
-              <label>Name: <input type="text" name="name"/></label>
+              <label>Name: <input type="text" name="name" /></label>
             </div>
             <div class="button-group">
               <button type="submit" name="commit">Save</button>
-              <button type="button" class="back-to-menu">Back to person menu</button>
+              <button type="button" class="back-to-menu">
+                Back to person menu
+              </button>
             </div>
           </form>
         </section>
@@ -84,19 +94,27 @@
           <h1>Update a person record</h1>
           <form autocomplete="off">
             <div class="select-one">
-              <label>Select person: <select name="selectPerson"></select></label>
+              <label
+                >Select person:
+                <select name="selectPerson"></select
+              ></label>
             </div>
             <div class="field">
-              <label>Person ID:
-                <output name="personid"></output>
+              <label
+                >Person ID:
+                <output name="personId"></output>
               </label>
             </div>
             <div class="field">
-              <label>Name: <input type="text" name="name"/></label>
+              <label>Name: <input type="text" name="name" /></label>
             </div>
             <div class="button-group">
-              <button type="submit" name="commit" disabled="disabled">Save</button>
-              <button type="button" class="back-to-menu">Back to person menu</button>
+              <button type="submit" name="commit" disabled="disabled">
+                Save
+              </button>
+              <button type="button" class="back-to-menu">
+                Back to person menu
+              </button>
             </div>
           </form>
         </section>
@@ -104,11 +122,16 @@
           <h1>Delete a person record</h1>
           <form>
             <div class="select-one">
-              <label>Select person: <select name="selectPerson"></select></label>
+              <label
+                >Select person:
+                <select name="selectPerson"></select
+              ></label>
             </div>
             <div class="button-group">
               <button type="submit" name="commit">Delete</button>
-              <button type="button" class="back-to-menu">Back to person menu</button>
+              <button type="button" class="back-to-menu">
+                Back to person menu
+              </button>
             </div>
           </form>
         </section>

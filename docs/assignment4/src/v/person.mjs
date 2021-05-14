@@ -1,8 +1,7 @@
 import { Person } from "../m/Person.js";
 import { MovieStorage } from "../m/MovieStorage.js";
 import { PersonStorage } from "../m/PersonStorage.js";
-import { fillSelectWithOptions }
-    from "../../lib/util.js";
+import { fillSelectWithOptions } from "../../lib/util.js";
 
 // loading the data
 PersonStorage.retrieveAll();
@@ -21,45 +20,46 @@ for (const frm of document.querySelectorAll("section > form")) {
 }
 
 // ---------- RETRIEVE AND LIST ALL ----------
-document.getElementById("retrieveAndListAll").addEventListener(
-  "click", function () {
+document
+  .getElementById("retrieveAndListAll")
+  .addEventListener("click", function () {
     document.getElementById("Person-M").style.display = "none";
     document.getElementById("Person-R").style.display = "block";
 
-    const tableBodyEl = document.
-      querySelector("section#Person-R > table > tbody");
-    tableBodyEl.innerHTML = "";  // drop old content
-    for (const key of Object.keys( PersonStorage.instances)) {
-        const person = PersonStorage.instances[key];
-        const row = tableBodyEl.insertRow();
-        row.insertCell().textContent = person.personId;
-        row.insertCell().textContent = person.name;
+    const tableBodyEl = document.querySelector(
+      "section#Person-R > table > tbody"
+    );
+    tableBodyEl.innerHTML = ""; // drop old content
+    for (const key of Object.keys(PersonStorage.instances)) {
+      const person = PersonStorage.instances[key];
+      const row = tableBodyEl.insertRow();
+      row.insertCell().textContent = person.personId;
+      row.insertCell().textContent = person.name;
     }
-});
+  });
 
 // ---------- CREATE ----------
 const createFormEl = document.querySelector("section#Person-C > form"),
-      createPersonIdEl = createFormEl.personid,
-      createNameEl = createFormEl.name;
-document.getElementById("create").addEventListener(
-  "click", function () {
-    document.getElementById("Person-M").style.display = "none";
-    document.getElementById("Person-C").style.display = "block";
+  createPersonIdEl = createFormEl.personId,
+  createNameEl = createFormEl.name;
+document.getElementById("create").addEventListener("click", function () {
+  document.getElementById("Person-M").style.display = "none";
+  document.getElementById("Person-C").style.display = "block";
 });
 // check validity on input
 createPersonIdEl.addEventListener("input", function () {
   createPersonIdEl.setCustomValidity(
-      Person.checkPersonIdAsId( createPersonIdEl.value).message);
+    Person.checkPersonIdAsId(createPersonIdEl.value).message
+  );
 });
 createNameEl.addEventListener("input", function () {
-  createNameEl.setCustomValidity(
-      Person.checkName( createNameEl.value).message);
+  createNameEl.setCustomValidity(Person.checkName(createNameEl.value).message);
 });
 // check for error messages
 createPersonIdEl.setCustomValidity(
-  Person.checkPersonIdAsId(createPersonIdEl.value).message);
-createNameEl.setCustomValidity(
-  Person.checkName(createNameEl.value).message);
+  Person.checkPersonIdAsId(createPersonIdEl.value).message
+);
+createNameEl.setCustomValidity(Person.checkName(createNameEl.value).message);
 // save button handling
 createFormEl["commit"].addEventListener("click", function () {
   const slots = {
@@ -68,35 +68,38 @@ createFormEl["commit"].addEventListener("click", function () {
   };
 
   createPersonIdEl.setCustomValidity(
-    Person.checkPersonIdAsId( slots.personId).message);
-  createNameEl.setCustomValidity(Person.checkName( slots.name).message);
-  
+    Person.checkPersonIdAsId(slots.personId).message
+  );
+  createNameEl.setCustomValidity(Person.checkName(slots.name).message);
+
   if (createFormEl.checkValidity()) {
-    PersonStorage.add( slots);
+    PersonStorage.add(slots);
   }
 });
 
 // ---------- UPDATE ----------
 const updateFormEl = document.querySelector("section#Person-U > form"),
-      updatePersonIdEl = updateFormEl.personid,
-      updateNameEl = updateFormEl.name,
-      selectedUpdatePersonEl = updateFormEl.selectPerson;
-document.getElementById("update").addEventListener(
-  "click", function () {
-    document.getElementById("Person-M").style.display = "none";
-    document.getElementById("Person-U").style.display = "block";
-    fillSelectWithOptions( selectedUpdatePersonEl, PersonStorage.instances,
-      "name");
-    updateFormEl.reset();
+  updatePersonIdEl = updateFormEl.personId,
+  updateNameEl = updateFormEl.name,
+  selectedUpdatePersonEl = updateFormEl.selectPerson;
+document.getElementById("update").addEventListener("click", function () {
+  document.getElementById("Person-M").style.display = "none";
+  document.getElementById("Person-U").style.display = "block";
+  fillSelectWithOptions(
+    selectedUpdatePersonEl,
+    PersonStorage.instances,
+    "name"
+  );
+  updateFormEl.reset();
 });
 selectedUpdatePersonEl.addEventListener("change", function () {
   const formEl = document.querySelector("section#Person-U > form"),
     saveBtn = formEl.commit,
     personId = formEl.selectPerson.value;
-  
+
   if (personId) {
     const person = PersonStorage.instances[personId];
-    formEl.personid.value = person.personId;
+    formEl.personId.value = person.personId;
     formEl.name.value = person.name;
     saveBtn.disabled = false;
   } else {
@@ -106,12 +109,10 @@ selectedUpdatePersonEl.addEventListener("change", function () {
 });
 // check validity on input for name
 updateNameEl.addEventListener("input", function () {
-  updateNameEl.setCustomValidity(
-      Person.checkName( updateNameEl.value).message);
+  updateNameEl.setCustomValidity(Person.checkName(updateNameEl.value).message);
 });
 // check for error messages for name
-updateNameEl.setCustomValidity(
-  Person.checkName(updateNameEl.value).message);
+updateNameEl.setCustomValidity(Person.checkName(updateNameEl.value).message);
 // save button handling
 updateFormEl["commit"].addEventListener("click", function () {
   const slots = {
@@ -119,25 +120,28 @@ updateFormEl["commit"].addEventListener("click", function () {
     name: updateNameEl.value,
   };
 
-  updateNameEl.setCustomValidity(Person.checkName( slots.name).message);
-  
+  updateNameEl.setCustomValidity(Person.checkName(slots.name).message);
+
   if (updateFormEl.checkValidity()) {
-    PersonStorage.update( slots);
-    selectedUpdatePersonEl.options[selectedUpdatePersonEl.selectedIndex].text = slots.name;
+    PersonStorage.update(slots);
+    selectedUpdatePersonEl.options[selectedUpdatePersonEl.selectedIndex].text =
+      slots.name;
   }
 });
 
 // ---------- DELETE ----------
 const deleteFormEl = document.querySelector("section#Person-D > form"),
-      selectedDeletePersonEl = deleteFormEl.selectPerson;
-document.getElementById("destroy").addEventListener(
-  "click", function () {
-    document.getElementById("Person-M").style.display = "none";
-    document.getElementById("Person-D").style.display = "block";
+  selectedDeletePersonEl = deleteFormEl.selectPerson;
+document.getElementById("destroy").addEventListener("click", function () {
+  document.getElementById("Person-M").style.display = "none";
+  document.getElementById("Person-D").style.display = "block";
 
-    fillSelectWithOptions( selectedDeletePersonEl, PersonStorage.instances,
-      "name");
-    deleteFormEl.reset();
+  fillSelectWithOptions(
+    selectedDeletePersonEl,
+    PersonStorage.instances,
+    "name"
+  );
+  deleteFormEl.reset();
 });
 deleteFormEl["commit"].addEventListener("click", function () {
   const personIdRef = selectedDeletePersonEl.value;
