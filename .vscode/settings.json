@@ -2,5 +2,14 @@
     "javascript.format.semicolons": "insert",
     "js/ts.implicitProjectConfig.checkJs": true,
     "eslint.format.enable": true,
-    "eslint.lintTask.enable": true
+    "eslint.lintTask.enable": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "prettier.configPath": ".vscode/.prettierrc.json",
+    "editor.formatOnSave": false,
+    "[javascript]": {
+        "editor.formatOnSave": true
+    },
+    "eslint.options": {
+        "configFile": ".vscode/.eslintrc.json"
+    },      
 }
