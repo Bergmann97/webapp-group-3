@@ -351,7 +351,7 @@ function createPushButton(txt) {
  * Fill a Choice Set element with items
  *
  * @param {HTMLUListElement} listEl  A list element
- * @param {string[]} selection  An entity table for filling the Choice Set
+ * @param {{[key: string]: object}} selection  An entity table for filling the Choice Set
  * @param {string} keyProp  The standard ID property of the entity table
  * @param {string} displayProp  A text property of the entity table
  */
@@ -373,8 +373,8 @@ function fillChoiceSet(listEl, selection, keyProp, displayProp) {
 /**
  *
  * @param {HTMLElement} widgetContainerEl
- * @param {string[]} selection
- * @param {any} selectionRange TODO type
+ * @param {{[key: string]: object}} selection
+ * @param {{[key: string]: object}} selectionRange
  * @param {string} keyProp
  * @param {string} displayProp
  * @param {number} minCard TODO this is not used anyways

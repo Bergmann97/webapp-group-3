@@ -10,8 +10,8 @@ const MOVIES_STORAGE_KEY = "movies";
  * @prop {string} [title]
  * @prop {Date | string | undefined} [releaseDate]
  * @prop {Person | number | string} [director]
- * @prop {Person[] | number[] | string[] | {[key: number]: Person}} [actorsToAdd]
- * @prop {Person[] | number[] | string[] | {[key: number]: Person}} [actorsToRemove]
+ * @prop {Person[] | number[] | string[] | {[key: string]: Person}} [actorsToAdd]
+ * @prop {Person[] | number[] | string[] | {[key: string]: Person}} [actorsToRemove]
  */
 
 /**
@@ -20,7 +20,7 @@ const MOVIES_STORAGE_KEY = "movies";
 class _MovieStorage {
   /** the current instances of `Movie`s used as a collection map
    * @private
-   * @type {{[key: number]: Movie}}
+   * @type {{[key: string]: Movie}}
    */
   _instances = {};
 
@@ -209,8 +209,7 @@ class _MovieStorage {
       const movies = JSON.parse(serialized);
       const keys = Object.keys(movies);
       console.info(`${keys.length} movies loaded`, movies);
-      for (let i = 0; i < keys.length; i++) {
-        const key = keys[i];
+      for (const key of keys) {
         const movie = Movie.deserialize(movies[key]);
         this._instances[key] = movie;
 

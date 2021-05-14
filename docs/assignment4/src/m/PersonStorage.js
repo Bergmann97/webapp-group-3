@@ -10,7 +10,7 @@ const PERSON_STORAGE_KEY = "person";
 class _PersonStorage {
   /** the current instances of `Person`s used as a collection map
    * @private
-   * @type {{[key: number]: Person}}
+   * @type {{[key: string]: Person}}
    */
   _instances = {};
 
@@ -138,8 +138,7 @@ class _PersonStorage {
       const persons = JSON.parse(serialized);
       const keys = Object.keys(persons);
       console.info(`${keys.length} person loaded`, persons);
-      for (let i = 0; i < keys.length; i++) {
-        const key = keys[i];
+      for (const key of keys) {
         const person = Person.deserialize(persons[key]);
         this._instances[key] = person;
 

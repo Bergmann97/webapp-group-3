@@ -26,6 +26,7 @@ for (const frm of document.querySelector("section").querySelectorAll("form")) {
   frm.addEventListener("submit", (e) => {
     e.preventDefault();
     frm.reset();
+    createMovieIdInput.value = MovieStorage.nextId().toString();
   });
 }
 
@@ -64,21 +65,21 @@ document.getElementById("retrieveAndListAll").addEventListener("click", () => {
   for (const key of Object.keys(MovieStorage.instances)) {
     /** @type {Movie} */
     const movie = MovieStorage.instances[key];
-    const actorsListEl = createListFromMap(movie.actors, "name");
     const row = tableBodyEl.insertRow();
     row.insertCell().textContent = movie.movieId.toString();
     row.insertCell().textContent = movie.title;
     if (movie.releaseDate) {
       row.insertCell().textContent = movie.releaseDate.toDateString();
     } else {
-      row.insertCell().textContent = "";
+      row.insertCell().textContent = "unknown";
     }
     row.insertCell().textContent =
       movie.director.name + " (ID:" + movie.director.personId + ")";
-    if (actorsListEl) {
+    const actorsListEl = createListFromMap(movie.actors, "name");
+    if (actorsListEl.childElementCount > 0) {
       row.insertCell().appendChild(actorsListEl);
     } else {
-      row.insertCell().textContent = "";
+      row.insertCell().textContent = "no actors";
     }
   }
 });
@@ -87,74 +88,90 @@ document.getElementById("retrieveAndListAll").addEventListener("click", () => {
  *** CREATE *******************************************************************
  *****************************************************************************/
 
-/** @type {HTMLFormElement} */
-const createMovieFormEl = document.querySelector("section#Movie-C > form");
-/** @type {HTMLInputElement} */
-const createMovieIdEl = createMovieFormEl["movieId"];
-/** @type {HTMLInputElement} */
-const createTitleEl = createMovieFormEl["movieTitle"];
-/** @type {HTMLInputElement} */
-const createReleaseDateEl = createMovieFormEl["releaseDate"];
-/** @type {HTMLSelectElement} */
-const selectDirectorEl = createMovieFormEl["selectDirector"];
-/** @type {HTMLSelectElement} */
-const selectActorsEl = createMovieFormEl["selectActors"];
+/** # FORM
+ * @type {HTMLFormElement} */
+const createMovieForm = document.querySelector("section#Movie-C > form");
 document.getElementById("create").addEventListener("click", () => {
   document.getElementById("Movie-M").style.display = "none";
   document.getElementById("Movie-C").style.display = "block";
 
-  fillSelectWithOptions(selectDirectorEl, PersonStorage.instances, "name");
-  fillSelectWithOptions(selectActorsEl, PersonStorage.instances, "name");
-
-  createMovieFormEl.reset();
-});
-
-// check on input/change
-createMovieIdEl.addEventListener("input", () => {
-  createMovieIdEl.setCustomValidity(
-    Movie.checkMovieId(createMovieIdEl.value).message
+  fillSelectWithOptions(
+    createDirectorSelection,
+    PersonStorage.instances,
+    "name"
   );
-});
-createTitleEl.addEventListener("input", () => {
-  createTitleEl.setCustomValidity(
-    Movie.checkTitle(createTitleEl.value).message
-  );
-});
-createReleaseDateEl.addEventListener("input", () => {
-  createReleaseDateEl.setCustomValidity(
-    Movie.checkReleaseDate(createReleaseDateEl.value).message
-  );
-});
-selectDirectorEl.addEventListener("change", () => {
-  selectDirectorEl.setCustomValidity(
-    Movie.checkDirector(selectDirectorEl.value).message
-  );
+  fillSelectWithOptions(createActorsSelection, PersonStorage.instances, "name");
 });
 
-// handle save button click
-createMovieFormEl["commit"].addEventListener("click", () => {
+/** ### MOVIE_ID ----------------------------------------------------
+ * @type {HTMLInputElement} */
+const createMovieIdInput = createMovieForm["movieId"];
+createMovieIdInput.addEventListener("input", () => {
+  createMovieIdInput.setCustomValidity(
+    Movie.checkMovieId(createMovieIdInput.value).message
+  );
+});
+createMovieIdInput.value = MovieStorage.nextId().toString();
+
+/** ### TITLE -------------------------------------------------------
+ * @type {HTMLInputElement} */
+const createTitleInput = createMovieForm["movieTitle"];
+createTitleInput.addEventListener("input", () => {
+  createTitleInput.setCustomValidity(
+    Movie.checkTitle(createTitleInput.value).message
+  );
+});
+
+/** ### RELEASE_DATE ------------------------------------------------
+ * @type {HTMLInputElement} */
+const createReleaseDateInput = createMovieForm["releaseDate"];
+createReleaseDateInput.addEventListener("input", () => {
+  createReleaseDateInput.setCustomValidity(
+    Movie.checkReleaseDate(createReleaseDateInput.value).message
+  );
+});
+
+/** ### DIRECTOR ----------------------------------------------------
+ * @type {HTMLSelectElement} */
+const createDirectorSelection = createMovieForm["selectDirector"];
+createDirectorSelection.addEventListener("change", () => {
+  createDirectorSelection.setCustomValidity(
+    Movie.checkDirector(createDirectorSelection.value).message
+  );
+});
+
+/** ### ACTORS ------------------------------------------------------
+ * @type {HTMLSelectElement} */
+const createActorsSelection = createMovieForm["selectActors"];
+
+/** ### SAVE_BUTTON -------------------------------------------------
+ * @type {HTMLButtonElement} */
+const createSaveButton = createMovieForm["save"];
+createSaveButton.addEventListener("click", () => {
   /** @type {import("../m/Movie.js").MovieSlots} */
   const slots = {
-    movieId: createMovieIdEl.value,
-    title: createTitleEl.value,
-    releaseDate: createReleaseDateEl.value,
-    director: selectDirectorEl.value,
+    movieId: createMovieIdInput.value,
+    title: createTitleInput.value,
+    releaseDate: createReleaseDateInput.value,
+    director: createDirectorSelection.value,
     actors: [],
   };
 
   // check all input fields and show error messages
-  createMovieIdEl.setCustomValidity(Movie.checkMovieId(slots.movieId).message);
-  createTitleEl.setCustomValidity(
-    Movie.checkTitle(createTitleEl.value).message
+  createMovieIdInput.setCustomValidity(
+    Movie.checkMovieId(slots.movieId).message
   );
-  selectDirectorEl.setCustomValidity(
-    Movie.checkDirector(selectDirectorEl.value).message
+  createTitleInput.setCustomValidity(
+    Movie.checkTitle(createTitleInput.value).message
+  );
+  createDirectorSelection.setCustomValidity(
+    Movie.checkDirector(createDirectorSelection.value).message
   );
 
-  const selActOptions = selectActorsEl.selectedOptions;
+  const selActOptions = createActorsSelection.selectedOptions;
 
   // save the input data only if all form fields are valid
-  if (createMovieFormEl.checkValidity()) {
+  if (createMovieForm.checkValidity()) {
     // construct a list of author ID references
     for (const opt of selActOptions) {
       // @ts-ignore this is an array for sure !
@@ -168,43 +185,39 @@ createMovieFormEl["commit"].addEventListener("click", () => {
  *** UPDATE *******************************************************************
  *****************************************************************************/
 
-/** @type {HTMLFormElement} */
-const updateMovieFormEl = document.querySelector("section#Movie-U > form");
-/** @type {HTMLSelectElement} */
-const selectMovieEl = updateMovieFormEl["selectMovie"];
-/** @type {HTMLInputElement} */
-const movieIdEl = updateMovieFormEl["movieId"];
-/** @type {HTMLInputElement} */
-const updateTitleEl = updateMovieFormEl["movieTitle"];
-/** @type {HTMLInputElement} */
-const updateReleaseDateEl = updateMovieFormEl["releaseDate"];
-/** @type {HTMLSelectElement} */
-const updateSelDirectorEl = updateMovieFormEl["director"];
-/** @type {HTMLSelectElement} */
-const updateSelActorsEl = updateMovieFormEl.querySelector(".MultiChoiceWidget");
+/** # FORM
+ * @type {HTMLFormElement} */
+const updateMovieForm = document.querySelector("section#Movie-U > form");
 document.getElementById("update").addEventListener("click", () => {
   document.getElementById("Movie-M").style.display = "none";
   document.getElementById("Movie-U").style.display = "block";
 
-  fillSelectWithOptions(selectMovieEl, MovieStorage.instances, "title");
-  updateMovieFormEl.reset();
+  fillSelectWithOptions(updateMovieSelection, MovieStorage.instances, "title");
+  updateMovieForm.reset();
 });
-selectMovieEl.addEventListener("change", () => {
-  const saveBtn = updateMovieFormEl.commit,
-    movieId = selectMovieEl.value;
+
+/** ### MOVIE_SELECTION ---------------------------------------------
+ * @type {HTMLSelectElement} */
+const updateMovieSelection = updateMovieForm["selectMovie"];
+updateMovieSelection.addEventListener("change", () => {
+  const movieId = updateMovieSelection.value;
 
   if (movieId) {
     const movie = MovieStorage.instances[movieId];
-    movieIdEl.value = movie.movieId;
-    updateTitleEl.value = movie.title;
-    updateReleaseDateEl.valueAsDate = movie.releaseDate;
+    updateMovieIdInput.value = movie.movieId.toString();
+    updateTitleInput.value = movie.title;
+    updateReleaseDateInput.valueAsDate = movie.releaseDate;
 
     // set up the associated publisher selection list
-    fillSelectWithOptions(updateSelDirectorEl, PersonStorage.instances, "name");
+    fillSelectWithOptions(
+      updateDirectorSelection,
+      PersonStorage.instances,
+      "name"
+    );
 
     // set up the associated authors selection widget
     createMultipleChoiceWidget(
-      updateSelActorsEl,
+      updateActorsSelection,
       movie.actors,
       PersonStorage.instances,
       "personId",
@@ -212,58 +225,79 @@ selectMovieEl.addEventListener("change", () => {
       1
     );
 
-    updateSelDirectorEl.selectedIndex = movie.director.personId;
+    updateDirectorSelection.selectedIndex = movie.director.personId;
 
-    saveBtn.disabled = false;
+    updateSaveButton.disabled = false;
   } else {
-    updateMovieFormEl.reset();
-    saveBtn.disabled = true;
+    updateMovieForm.reset();
+    updateSaveButton.disabled = true;
   }
 });
 
-// validate on input
-updateSelDirectorEl.addEventListener("change", () => {
-  updateSelDirectorEl.setCustomValidity(
-    Movie.checkDirector(updateSelDirectorEl.value).message
-  );
-});
-updateTitleEl.addEventListener("input", () => {
-  updateTitleEl.setCustomValidity(
-    Movie.checkTitle(updateTitleEl.value).message
-  );
-});
-updateReleaseDateEl.addEventListener("input", () => {
-  updateReleaseDateEl.setCustomValidity(
-    Movie.checkReleaseDate(updateReleaseDateEl.value).message
+/** ### MOVIE_ID ----------------------------------------------------
+ * @type {HTMLInputElement} */
+const updateMovieIdInput = updateMovieForm["movieId"];
+
+/** ### TITLE -------------------------------------------------------
+ * @type {HTMLInputElement} */
+const updateTitleInput = updateMovieForm["movieTitle"];
+updateTitleInput.addEventListener("input", () => {
+  updateTitleInput.setCustomValidity(
+    Movie.checkTitle(updateTitleInput.value).message
   );
 });
 
-// handle save button click incl. handle multiChoice Widget
-updateMovieFormEl["commit"].addEventListener("click", () => {
-  const multiChoiceListEl = updateSelActorsEl.firstElementChild;
+/** ### RELEASE_DATE ------------------------------------------------
+ * @type {HTMLInputElement} */
+const updateReleaseDateInput = updateMovieForm["releaseDate"];
+updateReleaseDateInput.addEventListener("input", () => {
+  updateReleaseDateInput.setCustomValidity(
+    Movie.checkReleaseDate(updateReleaseDateInput.value).message
+  );
+});
+
+/** ### DIRECTOR ----------------------------------------------------
+ * @type {HTMLSelectElement} */
+const updateDirectorSelection = updateMovieForm["director"];
+updateDirectorSelection.addEventListener("change", () => {
+  updateDirectorSelection.setCustomValidity(
+    Movie.checkDirector(updateDirectorSelection.value).message
+  );
+});
+
+/** ### ACTORS ------------------------------------------------------
+ * @type {HTMLSelectElement} */
+const updateActorsSelection =
+  updateMovieForm.querySelector(".MultiChoiceWidget");
+
+/** ### SAVE_BUTTON -------------------------------------------------
+ * @type {HTMLButtonElement} */
+const updateSaveButton = updateMovieForm["save"];
+updateSaveButton.addEventListener("click", () => {
+  const multiChoiceListEl = updateActorsSelection.firstElementChild;
   /** @type {{movieId: number | string} & import("../m/MovieStorage.js").MovieUpdateSlots} */
   const slots = {
-    movieId: movieIdEl.value,
-    title: updateTitleEl.value,
-    releaseDate: updateReleaseDateEl.value,
-    director: updateSelDirectorEl.value,
+    movieId: updateMovieIdInput.value,
+    title: updateTitleInput.value,
+    releaseDate: updateReleaseDateInput.value,
+    director: updateDirectorSelection.value,
     actorsToAdd: [],
     actorsToRemove: [],
   };
 
   // check all input fields and show error messages
-  updateTitleEl.setCustomValidity(
-    Movie.checkTitle(updateTitleEl.value).message
+  updateTitleInput.setCustomValidity(
+    Movie.checkTitle(updateTitleInput.value).message
   );
-  updateReleaseDateEl.setCustomValidity(
-    Movie.checkReleaseDate(updateReleaseDateEl.value).message
+  updateReleaseDateInput.setCustomValidity(
+    Movie.checkReleaseDate(updateReleaseDateInput.value).message
   );
-  updateSelDirectorEl.setCustomValidity(
-    Movie.checkDirector(updateSelDirectorEl.value).message
+  updateDirectorSelection.setCustomValidity(
+    Movie.checkDirector(updateDirectorSelection.value).message
   );
 
   // save the input data only if all form fields are valid
-  if (updateMovieFormEl.checkValidity()) {
+  if (updateMovieForm.checkValidity()) {
     // construct authorIdRefs-ToAdd/ToRemove lists from the association list
     /** @type {string[]} */
     const actorsToAdd = [];
@@ -288,8 +322,9 @@ updateMovieFormEl["commit"].addEventListener("click", () => {
     MovieStorage.update(slots);
 
     // update the book selection list's option element
-    selectMovieEl.options[selectMovieEl.selectedIndex].text = slots.title;
-    updateSelActorsEl.innerHTML = "";
+    updateMovieSelection.options[updateMovieSelection.selectedIndex].text =
+      slots.title;
+    updateActorsSelection.innerHTML = "";
   }
 });
 
@@ -297,24 +332,27 @@ updateMovieFormEl["commit"].addEventListener("click", () => {
  *** DELETE *******************************************************************
  *****************************************************************************/
 
-/** @type {HTMLFormElement} */
-const deleteMovieFormEl = document.querySelector("section#Movie-D > form");
-/** @type {HTMLSelectElement} */
-const deleteSelectMovieEl = deleteMovieFormEl.selectMovie;
+/** # FROM
+ * @type {HTMLFormElement} */
+const deleteMovieForm = document.querySelector("section#Movie-D > form");
+
+/** # MOVIE_SELECTION
+ * @type {HTMLSelectElement} */
+const deleteMovieSelection = deleteMovieForm["selectMovie"];
 document.getElementById("destroy").addEventListener("click", () => {
   document.getElementById("Movie-M").style.display = "none";
   document.getElementById("Movie-D").style.display = "block";
 
-  fillSelectWithOptions(deleteSelectMovieEl, MovieStorage.instances, "title");
-  deleteMovieFormEl.reset();
+  fillSelectWithOptions(deleteMovieSelection, MovieStorage.instances, "title");
+  deleteMovieForm.reset();
 });
-deleteMovieFormEl["commit"].addEventListener("click", () => {
-  const movieId = deleteSelectMovieEl.value;
+deleteMovieForm["delete"].addEventListener("click", () => {
+  const movieId = deleteMovieSelection.value;
   if (!movieId) return;
   if (confirm("Do you really want to delete this Movie?")) {
     MovieStorage.destroy(movieId);
 
     // remove deleted book from select options
-    deleteSelectMovieEl.remove(deleteSelectMovieEl.selectedIndex);
+    deleteMovieSelection.remove(deleteMovieSelection.selectedIndex);
   }
 });

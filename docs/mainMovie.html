@@ -90,7 +90,7 @@
           <h1>Create a new movie record</h1>
           <form>
             <div class="field">
-              <label>ID: <input type="number" name="movieId" /></label>
+              <label>ID: <input type="number" name="movieId" min="1" /></label>
             </div>
             <div class="field">
               <label>Title: <input type="text" name="movieTitle" /></label>
@@ -113,7 +113,7 @@
               </label>
             </div>
             <div class="button-group">
-              <button type="submit" name="commit">Save</button>
+              <button type="submit" name="save">Save</button>
               <button type="button" class="back-to-menu">
                 Back to movie menu
               </button>
@@ -156,7 +156,7 @@
               <div id="updMovieSelectActors" class="MultiChoiceWidget"></div>
             </div>
             <div class="button-group">
-              <button type="submit" name="commit" disabled="disabled">
+              <button type="submit" name="save" disabled="disabled">
                 Save
               </button>
               <button type="button" class="back-to-menu">
@@ -177,7 +177,7 @@
               ></label>
             </div>
             <div class="button-group">
-              <button type="submit" name="commit">Delete</button>
+              <button type="submit" name="delete">Delete</button>
               <button type="button" class="back-to-menu">
                 Back to movie menu
               </button>

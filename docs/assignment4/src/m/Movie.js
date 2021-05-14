@@ -55,7 +55,7 @@ export const MovieRatingEL = new Enumeration({
  * @prop {string} title
  * @prop {Date | string | undefined} releaseDate
  * @prop {Person | number | string} director
- * @prop {Person[] | number[] | string[] | {[key: number]: Person} | undefined} actors
+ * @prop {Person[] | number[] | string[] | {[key: string]: Person} | undefined} actors
  */
 
 /**
@@ -96,7 +96,7 @@ export class Movie {
   /** the actors starring the movie
    * - optional multiValue
    * @private
-   * @type {{[key: number]: Person}}
+   * @type {{[key: string]: Person}}
    */
   _actors;
 
@@ -283,12 +283,12 @@ export class Movie {
 
   // *** actors ***************************************************************
 
-  /** @returns {{[key: number]: Person}} a Map of actors (*key = `person.Id`*) starring the movie */
+  /** @returns {{[key: string]: Person}} a Map of actors (*key = `person.Id`*) starring the movie */
   get actors() {
     return this._actors;
   }
 
-  /** @param {Person[] | number[] | string[] | {[key: number]: Person} | undefined} actors an array of `Person`s or an array of `personId`s or a `Map<personId, Person>` */
+  /** @param {Person[] | number[] | string[] | {[key: string]: Person} | undefined} actors an array of `Person`s or an array of `personId`s or a `Map<personId, Person>` */
   set actors(actors) {
     // clear and add actors
     this._actors = {};
@@ -300,7 +300,7 @@ export class Movie {
     return Person.checkPersonIdAsIdRef(actor);
   }
 
-  /** @param {Person[] | number[] | string[] | {[key: number]: Person} | undefined} actors an array of `Person`s or an array of `personId`s or a `Map<personId, Person>` */
+  /** @param {Person[] | number[] | string[] | {[key: string]: Person} | undefined} actors an array of `Person`s or an array of `personId`s or a `Map<personId, Person>` */
   addActors(actors) {
     if (Array.isArray(actors)) {
       // array of IdRefs
@@ -329,7 +329,7 @@ export class Movie {
     }
   }
 
-  /** @param {Person[] | number[] | string[] | {[key: number]: Person} | undefined} actors an array of `Person`s or an array of `personId`s or a `Map<personId, Person>` */
+  /** @param {Person[] | number[] | string[] | {[key: string]: Person} | undefined} actors an array of `Person`s or an array of `personId`s or a `Map<personId, Person>` */
   removeActors(actors) {
     if (Array.isArray(actors)) {
       // array of IdRefs
