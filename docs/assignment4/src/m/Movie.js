@@ -49,48 +49,48 @@ export const MovieRatingEL = new Enumeration({
 });
 
 /**
-* The creation slots of the movie.
-* @typedef {object} MovieSlots
-* @prop {number} movieId
-* @prop {string} title
-* @prop {Date | string | undefined} releaseDate
-* @prop {Person | number} director
-* @todo actors
-*/
+ * The creation slots of the movie.
+ * @typedef {object} MovieSlots
+ * @prop {number | string} movieId
+ * @prop {string} title
+ * @prop {Date | string | undefined} releaseDate
+ * @prop {Person | number | string} director
+ * @prop {Person[] | number[] | string[] | {[key: number]: Person} | undefined} actors
+ */
 
 /**
-* The entity of a Movie
-*/
+ * The entity of a Movie
+ */
 export class Movie {
   /** the unique identifier of the movie
-  * - unique required PositiveInteger {id}
-  *
-  * @private
-  * @type {number}
-  */
+   * - unique required PositiveInteger {id}
+   *
+   * @private
+   * @type {number}
+   */
   _movieId;
 
   /** the official title of the movie
-  * - required NonEmptyString(120)
-  * @private
-  * @type {string}
-  */
+   * - required NonEmptyString(120)
+   * @private
+   * @type {string}
+   */
   _title;
 
   /** the date the movie was released
-  * - optional
-  * - Date
-  * - min: "1895-12-28"
-  * @private
-  * @type {Date}
-  */
+   * - optional
+   * - Date
+   * - min: "1895-12-28"
+   * @private
+   * @type {Date}
+   */
   _releaseDate;
 
   /** the director of the movie
-  * - required Person
-  * @private
-  * @type {Person}
-  */
+   * - required Person
+   * @private
+   * @type {Person}
+   */
   _director;
 
   /** the actors starring the movie
@@ -100,29 +100,19 @@ export class Movie {
    */
   _actors;
 
-
   /**
-  * CONSTRUCTOR
-  * @param {MovieSlots} slots - Object creation slots
-  */
-  constructor({
-    movieId,
-    title,
-    releaseDate,
-    director,
-    actors,
-  }) {
+   * CONSTRUCTOR
+   * @param {MovieSlots} slots - Object creation slots
+   */
+  constructor({ movieId, title, releaseDate, director, actors }) {
     if (arguments.length > 0) {
       this.movieId = movieId;
       this.title = title;
       if (releaseDate) {
-        // @ts-ignore
         this.releaseDate = releaseDate;
       }
-      // @ts-ignore
       this.director = director;
       if (actors) {
-        // @ts-ignore
         this.actors = actors;
       } else {
         this.actors = [];
@@ -133,17 +123,17 @@ export class Movie {
   // *** movieId **************************************************************
 
   /**
-  * @returns {number} the unique identifier of the movie
-  */
+   * @returns {number} the unique identifier of the movie
+   */
   get movieId() {
     return this._movieId;
   }
 
   /**
-  * sets a new movieId
-  * - @private this is just used internally though the id is frozen
-  * @param {number} movieId
-  */
+   * sets a new movieId
+   * - @private this is just used internally though the id is frozen
+   * @param {number | string}     movieId
+   */
   set movieId(movieId) {
     const validationResult = Movie.checkMovieId(movieId);
     if (validationResult instanceof NoConstraintViolation) {
@@ -154,10 +144,10 @@ export class Movie {
   }
 
   /**
-  * checks if the given movieId is present, >0 and unique
-  * @param {number | string} movieId
-  * @returns a ConstraintViolation
-  */
+   * checks if the given movieId is present, >0 and unique
+   * @param {number | string} movieId
+   * @returns a ConstraintViolation
+   */
   static checkMovieId(movieId) {
     if (!movieId && movieId !== 0) {
       return new MandatoryValueConstraintViolation(
@@ -180,8 +170,6 @@ export class Movie {
     }
   }
 
-  
-
   // *** title ****************************************************************
 
   /** @returns {string} the official title of the movie */
@@ -200,11 +188,11 @@ export class Movie {
   }
 
   /**
-  * checks if the given title is present and between [1,120] letters
-  * @param {string} title
-  * @returns a ConstraintViolation
-  * @public
-  */
+   * checks if the given title is present and between [1,120] letters
+   * @param {string} title
+   * @returns a ConstraintViolation
+   * @public
+   */
   static checkTitle(title) {
     if (!title) {
       return new MandatoryValueConstraintViolation(
@@ -225,12 +213,12 @@ export class Movie {
 
   // *** releaseDate **********************************************************
 
-  /** @ts-ignore @returns {Date} the date the movie was released */
+  /** @returns {Date} the date the movie was released */
   get releaseDate() {
     return this._releaseDate;
   }
 
-  /** @ts-ignore @param {Date |string} date - the new date to set */
+  /** @param {Date | string} date - the new date to set */
   set releaseDate(date) {
     const validationResult = Movie.checkReleaseDate(date);
     if (validationResult instanceof NoConstraintViolation) {
@@ -241,10 +229,10 @@ export class Movie {
   }
 
   /**
-  * checks if the given date is of type Date and >= 1895-12-28
-  * @param {Date | string} date
-  * @returns a ConstraintViolation
-  */
+   * checks if the given date is of type Date and >= 1895-12-28
+   * @param {Date | string} date
+   * @returns a ConstraintViolation
+   */
   static checkReleaseDate(date) {
     if (!date || date === "") {
       return new NoConstraintViolation();
@@ -270,12 +258,12 @@ export class Movie {
 
   // *** director *************************************************************
 
-  /** @ts-ignore @returns {Person} the director (`Person`) of the movie */
+  /** @returns {Person} the director (`Person`) of the movie */
   get director() {
     return this._director;
   }
 
-  /** @ts-ignore @param {Person | number} director the `Person` or it's `personId` */
+  /** @param {Person | number | string} director the `Person` or it's `personId` */
   set director(director) {
     const director_id =
       typeof director !== "object" ? director : director.personId;
@@ -288,31 +276,31 @@ export class Movie {
     }
   }
 
-  /** @param {number} director_id */
+  /** @param {number | string} director_id */
   static checkDirector(director_id) {
     return Person.checkPersonIdAsIdRef(director_id);
   }
 
   // *** actors ***************************************************************
 
-  /** @ts-ignore @returns {{[key: number]: Person}} a Map of actors (*key = `person.Id`*) starring the movie */
+  /** @returns {{[key: number]: Person}} a Map of actors (*key = `person.Id`*) starring the movie */
   get actors() {
     return this._actors;
   }
 
-  /** @ts-ignore @param {Person[] | number[] | {[key: number]: Person} | undefined} actors an array of `Person`s or an array of `personId`s or a `Map<personId, Person>` */
+  /** @param {Person[] | number[] | string[] | {[key: number]: Person} | undefined} actors an array of `Person`s or an array of `personId`s or a `Map<personId, Person>` */
   set actors(actors) {
     // clear and add actors
     this._actors = {};
     this.addActors(actors);
   }
 
-  /** @param {number} actor */
+  /** @param {number | string} actor */
   static checkActor(actor) {
     return Person.checkPersonIdAsIdRef(actor);
   }
 
-  /** @param {Person[] | number[] | {[key: number]: Person} | undefined} actors an array of `Person`s or an array of `personId`s or a `Map<personId, Person>` */
+  /** @param {Person[] | number[] | string[] | {[key: number]: Person} | undefined} actors an array of `Person`s or an array of `personId`s or a `Map<personId, Person>` */
   addActors(actors) {
     if (Array.isArray(actors)) {
       // array of IdRefs
@@ -327,7 +315,7 @@ export class Movie {
     }
   }
 
-  /** @param {Person | number} actor the `Person` or it's `personId` */
+  /** @param {Person | number | string} actor the `Person` or it's `personId` */
   addActor(actor) {
     // actor can be an ID reference or an object reference
     const actor_id = typeof actor !== "object" ? actor : actor.personId;
@@ -341,7 +329,7 @@ export class Movie {
     }
   }
 
-  /** @param {Person[] | number[] | {[key: number]: Person} | undefined} actors an array of `Person`s or an array of `personId`s or a `Map<personId, Person>` */
+  /** @param {Person[] | number[] | string[] | {[key: number]: Person} | undefined} actors an array of `Person`s or an array of `personId`s or a `Map<personId, Person>` */
   removeActors(actors) {
     if (Array.isArray(actors)) {
       // array of IdRefs
@@ -356,7 +344,7 @@ export class Movie {
     }
   }
 
-  /** @param {Person | number} actor the `Person` or it's `personId` */
+  /** @param {Person | number | string} actor the `Person` or it's `personId` */
   removeActor(actor) {
     // a can be an ID reference or an object reference
     const actor_id = typeof actor !== "object" ? actor : actor.personId;
@@ -372,10 +360,10 @@ export class Movie {
   // *** serialization ********************************************************
 
   /**
-  * a static function that creates a `new Movie` from a serialized one.
-  * @param {MovieSlots} slots - Object creation slots
-  * @returns {Movie | null} a new `Movie` with the corresponding slots if they pass their constraints. `null` otherwise.
-  */
+   * a static function that creates a `new Movie` from a serialized one.
+   * @param {MovieSlots} slots - Object creation slots
+   * @returns {Movie | null} a new `Movie` with the corresponding slots if they pass their constraints. `null` otherwise.
+   */
   static deserialize(slots) {
     let movie = null;
     try {
@@ -384,7 +372,7 @@ export class Movie {
         title: slots.title,
         releaseDate: slots.releaseDate,
         director: slots.director,
-        actors: slots.actors
+        actors: slots.actors,
       });
     } catch (e) {
       console.warn(
@@ -396,10 +384,9 @@ export class Movie {
   }
 
   /**
-  * this function is invoked by `JSON.stringify()` and converts the inner `"_propertyKey"` to `"propertyKey"`
-  * @override the inherited toJSON()
-  * @returns {{}} the JSON object of the movie
-  */
+   * this function is invoked by `JSON.stringify()` and converts the inner `"_propertyKey"` to `"propertyKey"`
+   * @returns {{}} the JSON object of the movie
+   */
   toJSON() {
     const rec = {};
     for (let p of Object.keys(this)) {
@@ -427,7 +414,11 @@ export class Movie {
 
   /** @returns the stringified Movie */
   toString() {
-    var movieStr = `Movie{movieId: ${this.movieId}, title: ${this.title}, releaseDate: ${this._releaseDate ? this.releaseDate.toLocaleDateString() : "undefined"}, director: ${this._director.toString()}`
+    var movieStr = `Movie{movieId: ${this.movieId}, title: ${
+      this.title
+    }, releaseDate: ${
+      this._releaseDate ? this.releaseDate.toLocaleDateString() : "undefined"
+    }, director: ${this._director.toString()}`;
     return movieStr + `}`;
   }
 }

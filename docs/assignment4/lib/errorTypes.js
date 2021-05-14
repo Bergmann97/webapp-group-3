@@ -7,6 +7,7 @@
 
 export class ConstraintViolation {
   constructor(msg) {
+    /** @type {string} */
     this.message = msg;
   }
 }
@@ -82,7 +83,7 @@ export class UniquenessConstraintViolation extends ConstraintViolation {
 }
 
 /** ## Referential Integrity Constraints
- * require that the values of a reference property refer to 
+ * require that the values of a reference property refer to
  * an existing object in the range of the reference property.
  */
 export class ReferentialIntegrityConstraintViolation extends ConstraintViolation {

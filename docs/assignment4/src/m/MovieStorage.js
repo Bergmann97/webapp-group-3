@@ -1,17 +1,17 @@
 import { cloneObject, compareDates } from "../../lib/util.js";
 import { Movie } from "./Movie.js";
 import { Person } from "./Person.js";
-import { PersonStorage } from "./PersonStorage.js";
 
 /** key for the `localStorage[key]` for the `this.instances` */
 const MOVIES_STORAGE_KEY = "movies";
 
 /** The slots for updating a `Movie`
  * @typedef {object} MovieUpdateSlots
- * @property {string | undefined} title
- * @property {Date | undefined} releaseDate
- * @property {number | Person | undefined} director
- * @todo actors
+ * @prop {string} [title]
+ * @prop {Date | string | undefined} [releaseDate]
+ * @prop {Person | number | string} [director]
+ * @prop {Person[] | number[] | string[] | {[key: number]: Person}} [actorsToAdd]
+ * @prop {Person[] | number[] | string[] | {[key: number]: Person}} [actorsToRemove]
  */
 
 /**
@@ -40,6 +40,7 @@ class _MovieStorage {
    * @param {import("./Movie.js").MovieSlots} slots - Object creation slots
    */
   add(slots) {
+    /** @type {Movie} */
     let movie = null;
     try {
       movie = new Movie(slots);
@@ -57,7 +58,7 @@ class _MovieStorage {
   /**
    * updates the `Movie` with the corresponding `slots.movieId` and overwrites it's `title`, `genres`, `rating`
    * and/or `releaseDate` if they are defined and different
-   * @param {{movieId: number} & MovieUpdateSlots} slots - Object creation slots
+   * @param {{movieId: number | string} & MovieUpdateSlots} slots - Object creation slots
    */
   update(slots) {
     const {
@@ -65,8 +66,8 @@ class _MovieStorage {
       title,
       releaseDate,
       director,
-      actorsIdRefsToAdd,
-      actorsIdRefsToRemove
+      actorsToAdd,
+      actorsToRemove,
     } = slots;
     let noConstraintViolated = true;
     let updatedProperties = [];
@@ -104,18 +105,17 @@ class _MovieStorage {
           ? director !== movie.director.personId
           : director.personId
       ) {
-        // @ts-ignore
         movie.director = director;
         updatedProperties.push("director");
       }
 
       // actors
-      if (actorsIdRefsToAdd) {
-        movie.addActors(actorsIdRefsToAdd);
+      if (actorsToAdd) {
+        movie.addActors(actorsToAdd);
         updatedProperties.push("actors(added)");
       }
-      if (actorsIdRefsToRemove) {
-        movie.removeActors(actorsIdRefsToRemove);
+      if (actorsToRemove) {
+        movie.removeActors(actorsToRemove);
         updatedProperties.push("actors(removed)");
       }
     } catch (e) {
@@ -141,7 +141,7 @@ class _MovieStorage {
    * - eg.:
    *   ```javascript
    *   MovieStorage.updateAll(
-   *     {director: "Reddington"}, 
+   *     {director: "Reddington"},
    *     (movie) => movie.director.name === "Mr. Kaplan"
    *   );
    *   ```
@@ -149,14 +149,14 @@ class _MovieStorage {
    * @param {MovieUpdateSlots} slots to update on all (filtered) movies
    * @param {(movie: Movie) => boolean} filter that the movies have to fulfill with `true` to be updated (defaults to all movies)
    */
-  // updateAll(slots, filter = (a) => true) {
-  //   for (const mKey in this._instances) {
-  //     if (Object.hasOwnProperty.call(this._instances, mKey)) {
-  //       const movie = this._instances[mKey];
-  //       filter(movie) && this.update({ movieId: movie.movieId, ...slots });
-  //     }
-  //   }
-  // }
+  updateAll(slots, filter = (a) => true) {
+    for (const mKey in this._instances) {
+      if (Object.hasOwnProperty.call(this._instances, mKey)) {
+        const movie = this._instances[mKey];
+        filter(movie) && this.update({ movieId: movie.movieId, ...slots });
+      }
+    }
+  }
 
   /**
    * deletes the `Movie` with the corresponding `movieId` from the Storage
@@ -184,13 +184,13 @@ class _MovieStorage {
    * - the `filter` is optional and defaults to *all movies*
    * @param {(movie: Movie) => boolean} filter that the movies have to fulfill with `true` to be deleted (defaults to all movies)
    */
-  // destroyAll(filter = (a) => true) {
-  //   for (const mKey in this._instances) {
-  //     if (Object.hasOwnProperty.call(this._instances, mKey)) {
-  //       filter(this._instances[mKey]) && delete this._instances[mKey];
-  //     }
-  //   }
-  // }
+  destroyAll(filter = (a) => true) {
+    for (const mKey in this._instances) {
+      if (Object.hasOwnProperty.call(this._instances, mKey)) {
+        filter(this._instances[mKey]) && delete this._instances[mKey];
+      }
+    }
+  }
 
   /**
    * loads all stored Movies from the `localStorage`, parses them and stores them
@@ -281,10 +281,6 @@ class _MovieStorage {
     this._nextId = id;
   }
 
-  /*****************************************************************************
-   *** Auxiliary methods for testing *******************************************
-   *****************************************************************************/
-
   /**
    * clears all `Movie`s from the `this.instances`
    */
@@ -299,37 +295,6 @@ class _MovieStorage {
       console.warn(`${e.constructor.name}: ${e.message}`);
     }
     // }
-  }
-
-  /**
-   * creates a set of 3 `Movie`s and stores it in the first 3 slots of the `this.instances`
-   */
-  createTestData() {
-    try {
-      PersonStorage.createTestData();
-      this._instances[1] = new Movie({
-        movieId: 1,
-        title: "Pulp Fiction",
-        releaseDate: new Date("1994-05-12"),
-        director: 3,
-      });
-      this._instances[2] = new Movie({
-        movieId: 2,
-        title: "Star Wars",
-        releaseDate: new Date("1977-05-25"),
-        director: 2,
-      });
-      this._instances[3] = new Movie({
-        movieId: 3,
-        title: "Dangerous Liaisons",
-        releaseDate: new Date("1972-03-15"),
-        director: 1,
-      });
-      this.setNextId(4);
-      this.persist();
-    } catch (e) {
-      console.warn(`${e.constructor.name}: ${e.message}`);
-    }
   }
 }
 
