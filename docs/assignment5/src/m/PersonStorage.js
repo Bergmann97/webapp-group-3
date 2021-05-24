@@ -9,7 +9,7 @@ const PERSON_STORAGE_KEY = "person";
 /**
  * internal
  */
-class _PersonStorage {
+class PersonStorageClass {
   /** the current instances of `Person`s used as a collection map
    * @private
    * @type {{[key: string]: Person}}
@@ -29,7 +29,7 @@ class _PersonStorage {
   /**
    * adds a new Person created from the given `slots` to the collection of `Person`s
    * if the slots fulfill their constraints. Does nothing otherwise
-   * @param {{personId: number, name: string}} slots - Object creation slots
+   * @param {import("./Person.js").PersonSlots} slots - Object creation slots
    */
   add(slots) {
     let person = null;
@@ -41,7 +41,7 @@ class _PersonStorage {
     }
     if (person) {
       this._instances[person.personId] = person;
-      this.setNextId(parseInt(person.personId) + 1);
+      this.setNextId(person.personId + 1);
       console.info(`${person.toString()} created`, person);
     }
   }
@@ -52,8 +52,8 @@ class _PersonStorage {
    */
   update(slots) {
     const { personId, name } = slots;
-    var noConstraintViolated = true;
-    var updatedProperties = [];
+    let noConstraintViolated = true;
+    let updatedProperties = [];
     const person = this._instances[personId];
     const objectBeforeUpdate = cloneObject(person);
 
@@ -103,25 +103,21 @@ class _PersonStorage {
    *   );
    *   ```
    * @param {string} personId to delete
-   * @param {(person: Person) => void} onDestroy callback that can be used to delete references
    */
-  destroy(personId, onDestroy) {
+  destroy(personId) {
     const person = this._instances[personId];
 
     if (person) {
-      // delte all references within all movie objects
-      for (let key of Object.keys(MovieStorage.instances)) {
-        const movie = MovieStorage.instances[key];
-        if (movie.director === person) {
-          delete movie._director;
-          console.info(
-            `The Person with Id ${person.personId} was removed as director from movie with ID: ${movie.movieId}`
-          );
-        }
-        if (personId in movie._actors) {
-          movie.removeActor(person);
-        }
-      }
+      // delete all references within all movie objects
+      // directed movies
+      Object.keys(person.directedMovies).forEach((dirMovId) =>
+        MovieStorage.destroy(dirMovId)
+      );
+
+      // acted movies
+      Object.values(person.playedMovies).forEach((playMov) =>
+        playMov.removeActor(person)
+      );
 
       // delete the person record
       console.info(`${this._instances[personId].toString()} deleted`);
@@ -129,7 +125,6 @@ class _PersonStorage {
 
       // calculate nextId when last id is destroyed
       personId === this._nextId.toString() && this.calculateNextId();
-      this._nextId = personId;
     } else {
       console.info(
         `There is no person with id ${personId} to delete from the database`
@@ -233,7 +228,6 @@ class _PersonStorage {
    * clears all `Person`s from the `this.instances`
    */
   clear() {
-    // if (confirm("Do you really want to delete all person?")) {
     try {
       this._instances = {};
       localStorage[PERSON_STORAGE_KEY] = "{}";
@@ -242,7 +236,6 @@ class _PersonStorage {
     } catch (e) {
       console.warn(`${e.constructor.name}: ${e.message}`);
     }
-    // }
   }
 
   /**
@@ -275,4 +268,4 @@ class _PersonStorage {
  * - provides functions to create, retrieve, update and destroy `Person`s at the `localStorage`
  * - additionally provides auxiliary methods for testing
  */
-export const PersonStorage = new _PersonStorage();
+export const PersonStorage = new PersonStorageClass();

@@ -18,7 +18,7 @@ const MOVIES_STORAGE_KEY = "movies";
 /**
  * internal
  */
-class _MovieStorage {
+class MovieStorageClass {
   /** the current instances of `Movie`s used as a collection map
    * @private
    * @type {{[key: string]: Movie}}
@@ -91,16 +91,11 @@ class _MovieStorage {
       // director
       if (
         typeof director !== "object"
-          ? director !== movie.director.personId
-          : director.personId
+          ? director.toString() !== movie.director.personId.toString()
+          : director.personId !== movie.director.personId
       ) {
-        const newDirector = PersonStorage.instances[director];
-        const directorBeforeUpdate = movie.director;
+        // Director's directed movies are changed within Movie::set director
         movie.director = director;
-        // set the movie to the directed Movies of the person
-        newDirector._directedMovies[movie.movieId] = movie;
-        // delete this movie from the directed movies of the previous director
-        delete directorBeforeUpdate.directedMovies[movie.movieId];
         updatedProperties.push("director");
       }
 
@@ -162,9 +157,9 @@ class _MovieStorage {
       console.info(`${this._instances[movieId].toString()} deleted`);
       const movie = this._instances[movieId];
       // remove this movie from director and actors participated movies
-      delete movie.director.directedMovies[movie];
-      for (let actor in movie.actors) {
-        delete actor.playedMovies[movie];
+      movie.director.removeDirectedMovie(movie);
+      for (let actor of Object.values(movie.actors)) {
+        actor.removePlayedMovie(movie);
       }
       // finally destroy the movie
       delete this._instances[movieId];
@@ -174,23 +169,6 @@ class _MovieStorage {
       console.info(
         `There is no movie with id ${movieId} to delete from the database`
       );
-    }
-  }
-
-  /**
-   * deletes all `Movie`s from the storage that match with the corresponding `filter`
-   * - eg.:
-   *   ```javascript
-   *   MovieStorage.destroyAll((movie) => movie.director.name === "Mr. Kaplan");
-   *   ```
-   * - the `filter` is optional and defaults to *all movies*
-   * @param {(movie: Movie) => boolean} filter that the movies have to fulfill with `true` to be deleted (defaults to all movies)
-   */
-  destroyAll(filter = (a) => true) {
-    for (const mKey in this._instances) {
-      if (Object.hasOwnProperty.call(this._instances, mKey)) {
-        filter(this._instances[mKey]) && delete this._instances[mKey];
-      }
     }
   }
 
@@ -286,7 +264,6 @@ class _MovieStorage {
    * clears all `Movie`s from the `this.instances`
    */
   clear() {
-    // if (confirm("Do you really want to delete all movies?")) {
     try {
       this._instances = {};
       localStorage[MOVIES_STORAGE_KEY] = "{}";
@@ -295,7 +272,6 @@ class _MovieStorage {
     } catch (e) {
       console.warn(`${e.constructor.name}: ${e.message}`);
     }
-    // }
   }
 }
 
@@ -304,4 +280,4 @@ class _MovieStorage {
  * - provides functions to create, retrieve, update and destroy `Movie`s at the `localStorage`
  * - additionally provides auxiliary methods for testing
  */
-export const MovieStorage = new _MovieStorage();
+export const MovieStorage = new MovieStorageClass();

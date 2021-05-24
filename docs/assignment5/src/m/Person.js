@@ -11,6 +11,7 @@ import {
   isStringInRange,
   parseStringInteger,
 } from "../../lib/util.js";
+import { Movie } from "./Movie.js";
 import { PersonStorage } from "./PersonStorage.js";
 
 /**
@@ -35,12 +36,12 @@ export class Person {
   _name;
   /** movies, the person directed
    * @private
-   * @type {Movie[]}
+   * @type {{[movieId: number]: Movie}}
    */
   _directedMovies;
   /** movies, the person played a role
    * @private
-   * @type {Movie[]}
+   * @type {{[movieId: number]: Movie}}
    */
   _playedMovies;
 
@@ -48,20 +49,12 @@ export class Person {
    * CONSTRUCTOR
    * @param {PersonSlots} slots - The Object creation slots
    */
-  constructor({ personId, name, directedMovies, playedMovies }) {
+  constructor({ personId, name }) {
     if (arguments.length > 0) {
       this._personId = personId;
       this._name = name;
-      if (directedMovies) {
-        this._directedMovies = directedMovies;
-      } else {
-        this._directedMovies = {};
-      }
-      if (playedMovies) {
-        this._playedMovies = playedMovies;
-      } else {
-        this._playedMovies = {};
-      }
+      this._directedMovies = {};
+      this._playedMovies = {};
     }
   }
 
@@ -187,13 +180,37 @@ export class Person {
   }
 
   // *** directed Movie *******************************************************
+  /** @returns {{[movieId: number]: Movie}} the movies directed by this `Person` */
   get directedMovies() {
     return this._directedMovies;
   }
 
+  /** @param {Movie} movie this `Person` directs */
+  addDirectedMovie(movie) {
+    this._directedMovies[movie.movieId] = movie;
+  }
+
+  /** @param {Movie | string} movie this `Person` does not direct anymore */
+  removeDirectedMovie(movie) {
+    const id = typeof movie !== "object" ? movie : movie.movieId;
+    delete this._directedMovies[id];
+  }
+
   // *** played  Movie ********************************************************
+  /** @returns {{[movieId: number]: Movie}} the movies this `Person` acts in */
   get playedMovies() {
     return this._playedMovies;
+  }
+
+  /** @param {Movie} movie this `Person` acts in */
+  addPlayedMovie(movie) {
+    this._playedMovies[movie.movieId] = movie;
+  }
+
+  /** @param {Movie | string} movie this `Person` does not act anymore */
+  removePlayedMovie(movie) {
+    const id = typeof movie !== "object" ? movie : movie.movieId;
+    delete this._playedMovies[id];
   }
 
   // *** serialization ********************************************************
@@ -209,8 +226,6 @@ export class Person {
       person = new Person({
         personId: slots.personId,
         name: slots.name,
-        directedMovies: slots.directedMovies,
-        playedMovies: slots.playedMovies,
       });
     } catch (e) {
       console.warn(
