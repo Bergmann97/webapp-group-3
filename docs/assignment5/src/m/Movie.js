@@ -53,7 +53,7 @@ export const MovieRatingEL = new Enumeration({
  * @typedef {object} MovieSlots
  * @prop {number | string} movieId
  * @prop {string} title
- * @prop {Date | string | undefined} releaseDate
+ * @prop {Date | string} releaseDate
  * @prop {Person | number | string} director
  * @prop {Person[] | number[] | string[] | {[key: string]: Person} | undefined} actors
  */
@@ -234,9 +234,7 @@ export class Movie {
    * @returns a ConstraintViolation
    */
   static checkReleaseDate(date) {
-    if (!date || date === "") {
-      return new NoConstraintViolation();
-    } else if (!isDateOrDateString(date)) {
+    if (!isDateOrDateString(date)) {
       return new RangeConstraintViolation(
         `The movie's releaseDate must be of type "Date" or a valid date string, but is (${date}: ${typeof date})!`
       );
@@ -249,11 +247,6 @@ export class Movie {
     } else {
       return new NoConstraintViolation();
     }
-  }
-
-  /** deletes the `releaseDate`of this movie */
-  deleteReleaseDate() {
-    delete this._releaseDate;
   }
 
   // *** director *************************************************************

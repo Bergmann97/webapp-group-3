@@ -83,21 +83,9 @@ class _MovieStorage {
       }
 
       // update releaseDate
-      switch (compareDates(releaseDate, movie.releaseDate)) {
-        // no change
-        case 0:
-          break;
-        // slots.releaseDate has an empty value that is new
-        case -2:
-          movie.deleteReleaseDate();
-          updatedProperties.push("releaseDate");
-          break;
-        // slots.releaseDate has a non-empty value that is new
-        default:
-          // @ts-ignore
-          movie.releaseDate = releaseDate;
-          updatedProperties.push("releaseDate");
-          break;
+      if (compareDates(releaseDate, movie.releaseDate) !== 0) {
+        movie.releaseDate = releaseDate;
+        updatedProperties.push("releaseDate");
       }
 
       // director
