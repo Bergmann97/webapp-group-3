@@ -8,7 +8,7 @@ import { MovieStorage } from "../m/MovieStorage.js";
 import { PersonStorage } from "../m/PersonStorage.js";
 
 /******************************************************************************
- *** UI ***********************************************************************
+ *** MOVIE UI *****************************************************************
  *****************************************************************************/
 
 // set up back-to-menu buttons for all CRUD UIs
@@ -33,6 +33,7 @@ for (const frm of document.querySelector("section").querySelectorAll("form")) {
 // save data when leaving the page
 window.addEventListener("beforeunload", () => {
   MovieStorage.persist();
+  PersonStorage.persist();
 });
 
 function refreshManageDataUI() {
@@ -64,7 +65,7 @@ document.getElementById("retrieveAndListAll").addEventListener("click", () => {
   tableBodyEl.innerHTML = ""; // drop old content
   for (const key of Object.keys(MovieStorage.instances)) {
     /** @type {Movie} */
-    const movie = MovieStorage.instances[key];
+    const movie = MovieStorage._instances[key];
     const row = tableBodyEl.insertRow();
     row.insertCell().textContent = movie.movieId.toString();
     row.insertCell().textContent = movie.title;

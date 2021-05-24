@@ -3,6 +3,10 @@ import { MovieStorage } from "../m/MovieStorage.js";
 import { PersonStorage } from "../m/PersonStorage.js";
 import { fillSelectWithOptions } from "../../lib/util.js";
 
+/******************************************************************************
+ *** PERSON UI ****************************************************************
+ *****************************************************************************/
+
 // loading the data
 PersonStorage.retrieveAll();
 MovieStorage.retrieveAll();
@@ -19,7 +23,10 @@ for (const frm of document.querySelectorAll("section > form")) {
   });
 }
 
-// ---------- RETRIEVE AND LIST ALL ----------
+/******************************************************************************
+ *** RETRIEVE AND LIST ********************************************************
+ *****************************************************************************/
+
 document
   .getElementById("retrieveAndListAll")
   .addEventListener("click", function () {
@@ -38,7 +45,10 @@ document
     }
   });
 
-// ---------- CREATE ----------
+/******************************************************************************
+ *** CREATE *******************************************************************
+ *****************************************************************************/
+
 const createFormEl = document.querySelector("section#Person-C > form"),
   createPersonIdEl = createFormEl.personId,
   createNameEl = createFormEl.name;
@@ -77,7 +87,10 @@ createFormEl["commit"].addEventListener("click", function () {
   }
 });
 
-// ---------- UPDATE ----------
+/******************************************************************************
+ *** UPDATE *******************************************************************
+ *****************************************************************************/
+
 const updateFormEl = document.querySelector("section#Person-U > form"),
   updatePersonIdEl = updateFormEl.personId,
   updateNameEl = updateFormEl.name,
@@ -129,7 +142,9 @@ updateFormEl["commit"].addEventListener("click", function () {
   }
 });
 
-// ---------- DELETE ----------
+/******************************************************************************
+ *** DELETE *******************************************************************
+ *****************************************************************************/
 const deleteFormEl = document.querySelector("section#Person-D > form"),
   selectedDeletePersonEl = deleteFormEl.selectPerson;
 document.getElementById("destroy").addEventListener("click", function () {
@@ -156,6 +171,7 @@ deleteFormEl["commit"].addEventListener("click", function () {
 // save data when leaving the page
 window.addEventListener("beforeunload", function () {
   PersonStorage.persist();
+  MovieStorage.persist();
 });
 
 function refreshManageDataUI() {

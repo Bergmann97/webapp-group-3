@@ -1,4 +1,6 @@
 import { cloneObject } from "../../lib/util.js";
+import { Movie } from "./Movie.js";
+import { MovieStorage } from "./MovieStorage.js";
 import { Person } from "./Person.js";
 
 /** key for the `localStorage[key]` for the `this.instances` */
@@ -104,16 +106,32 @@ class _PersonStorage {
    * @param {(person: Person) => void} onDestroy callback that can be used to delete references
    */
   destroy(personId, onDestroy) {
-    if (this._instances[personId]) {
-      // call onDestroy to make sure the references can be deleted to
-      // onDestroy(this._instances[personId]);
+    const person = this._instances[personId];
 
-      // delete the Person
+    if (person) {
+      // delte all references within all movie objects
+      for (let key of Object.keys(MovieStorage.instances)) {
+        const movie = MovieStorage.instances[key];
+        if (movie.director === person) {
+          delete movie._director;
+          console.info(
+            `The Person with Id ${person.personId} was removed as director from movie with ID: ${movie.movieId}`
+          );
+        }
+        if (personId in movie._actors) {
+          movie.removeActor(person);
+          console.info(
+            `The Person with Id ${person.personId} was removed as actor from movie with ID: ${movie.movieId}`
+          );
+        }
+      }
+
+      // delete the person record
       console.info(`${this._instances[personId].toString()} deleted`);
       delete this._instances[personId];
 
       // calculate nextId when last id is destroyed
-      personId === this._nextId.toString() && this.calculateNextId();
+      // personId === this._nextId.toString() && this.calculateNextId();
     } else {
       console.info(
         `There is no person with id ${personId} to delete from the database`

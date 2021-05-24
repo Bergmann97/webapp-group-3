@@ -167,7 +167,7 @@ class _MovieStorage {
       console.info(`${this._instances[movieId].toString()} deleted`);
       delete this._instances[movieId];
       // calculate nextId when last id is destroyed
-      movieId === this._nextId.toString() && this.calculateNextId();
+      // movieId === this._nextId.toString() && this.calculateNextId();
     } else {
       console.info(
         `There is no movie with id ${movieId} to delete from the database`
@@ -269,7 +269,7 @@ class _MovieStorage {
   nextId() {
     // calculate the missing id if not already done
     if (this._nextId === 0) {
-      this.calculateNextId();
+      // this.calculateNextId();
     }
 
     return this._nextId;
