@@ -269,7 +269,7 @@ class _MovieStorage {
   nextId() {
     // calculate the missing id if not already done
     if (this._nextId === 0) {
-      // this.calculateNextId();
+      this.calculateNextId();
     }
 
     return this._nextId;
