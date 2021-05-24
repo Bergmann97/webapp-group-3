@@ -61,12 +61,12 @@ document.getElementById("retrieveAndListAll").addEventListener("click", () => {
   document.getElementById("Movie-R").style.display = "block";
 
   /** @type {HTMLTableSectionElement} */
-  const tableBodyEl = document.querySelector("section#Movie-R > table > tbody");
-  tableBodyEl.innerHTML = ""; // drop old content
+  const movieTable = document.querySelector("section#Movie-R > table > tbody");
+  movieTable.innerHTML = ""; // drop old content
   for (const key of Object.keys(MovieStorage.instances)) {
     /** @type {Movie} */
     const movie = MovieStorage.instances[key];
-    const row = tableBodyEl.insertRow();
+    const row = movieTable.insertRow();
     row.insertCell().textContent = movie.movieId.toString();
     row.insertCell().textContent = movie.title;
     if (movie.releaseDate) {
@@ -76,9 +76,9 @@ document.getElementById("retrieveAndListAll").addEventListener("click", () => {
     }
     row.insertCell().textContent =
       movie.director.name + " (ID:" + movie.director.personId + ")";
-    const actorsListEl = createListFromMap(movie.actors, "name");
-    if (actorsListEl.childElementCount > 0) {
-      row.insertCell().appendChild(actorsListEl);
+    const actorsList = createListFromMap(movie.actors, "name");
+    if (actorsList.childElementCount > 0) {
+      row.insertCell().appendChild(actorsList);
     } else {
       row.insertCell().textContent = "no actors";
     }

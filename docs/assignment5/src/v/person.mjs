@@ -1,7 +1,7 @@
 import { Person } from "../m/Person.js";
 import { MovieStorage } from "../m/MovieStorage.js";
 import { PersonStorage } from "../m/PersonStorage.js";
-import { fillSelectWithOptions } from "../../lib/util.js";
+import { createListFromMap, fillSelectWithOptions } from "../../lib/util.js";
 
 /******************************************************************************
  *** PERSON UI ****************************************************************
@@ -59,6 +59,18 @@ document.getElementById("retrieveAndListAll").addEventListener("click", () => {
     const row = tableBodySelection.insertRow();
     row.insertCell().textContent = person.personId.toString();
     row.insertCell().textContent = person.name;
+    const directorList = createListFromMap(person.directedMovies, "title");
+    if (directorList.childElementCount > 0) {
+      row.insertCell().appendChild(directorList);
+    } else {
+      row.insertCell().textContent = "---";
+    }
+    const actorList = createListFromMap(person.playedMovies, "title");
+    if (actorList.childElementCount > 0) {
+      row.insertCell().appendChild(actorList);
+    } else {
+      row.insertCell().textContent = "---";
+    }
   }
 });
 
