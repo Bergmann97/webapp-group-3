@@ -228,7 +228,7 @@ class _MovieStorage {
         this._instances[key] = movie;
 
         // store the current highest id (for receiving the next id later)
-        // this.setNextId(Math.max(movie.movieId + 1, this._nextId));
+        this.setNextId(Math.max(movie.movieId + 1, this._nextId));
       }
     }
   }

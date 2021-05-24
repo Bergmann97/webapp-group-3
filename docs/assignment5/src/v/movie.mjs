@@ -26,7 +26,8 @@ for (const frm of document.querySelector("section").querySelectorAll("form")) {
   frm.addEventListener("submit", (e) => {
     e.preventDefault();
     frm.reset();
-    createMovieIdInput.value = MovieStorage.nextId().toString();
+    createMovieIdInput.value = MovieStorage._nextId;
+    createMovieIdInput.setAttribute("min", MovieStorage._nextId);
   });
 }
 
@@ -95,6 +96,8 @@ const createMovieForm = document.querySelector("section#Movie-C > form");
 document.getElementById("create").addEventListener("click", () => {
   document.getElementById("Movie-M").style.display = "none";
   document.getElementById("Movie-C").style.display = "block";
+
+  createMovieIdInput.setAttribute("min", MovieStorage._nextId);
 
   fillSelectWithOptions(
     createDirectorSelection,
@@ -204,7 +207,7 @@ updateMovieSelection.addEventListener("change", () => {
   const movieId = updateMovieSelection.value;
 
   if (movieId) {
-    const movie = MovieStorage.instances[movieId];
+    var movie = MovieStorage.instances[movieId];
     updateMovieIdInput.value = movie.movieId.toString();
     updateTitleInput.value = movie.title;
     updateReleaseDateInput.valueAsDate = movie.releaseDate;

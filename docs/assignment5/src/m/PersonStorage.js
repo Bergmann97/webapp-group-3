@@ -41,7 +41,7 @@ class _PersonStorage {
     }
     if (person) {
       this._instances[person.personId] = person;
-      this.setNextId(person.personId + 1);
+      this.setNextId(parseInt(person.personId) + 1);
       console.info(`${person.toString()} created`, person);
     }
   }
@@ -120,9 +120,6 @@ class _PersonStorage {
         }
         if (personId in movie._actors) {
           movie.removeActor(person);
-          console.info(
-            `The Person with Id ${person.personId} was removed as actor from movie with ID: ${movie.movieId}`
-          );
         }
       }
 
@@ -131,7 +128,8 @@ class _PersonStorage {
       delete this._instances[personId];
 
       // calculate nextId when last id is destroyed
-      // personId === this._nextId.toString() && this.calculateNextId();
+      personId === this._nextId.toString() && this.calculateNextId();
+      this._nextId = personId;
     } else {
       console.info(
         `There is no person with id ${personId} to delete from the database`

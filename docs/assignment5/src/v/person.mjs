@@ -7,10 +7,6 @@ import { fillSelectWithOptions } from "../../lib/util.js";
  *** PERSON UI ****************************************************************
  *****************************************************************************/
 
-// loading the data
-PersonStorage.retrieveAll();
-MovieStorage.retrieveAll();
-
 // set up back-to-menu buttons for all CRUD UIs
 for (const btn of document.querySelectorAll("button.back-to-menu")) {
   btn.addEventListener("click", refreshManageDataUI);
@@ -20,8 +16,25 @@ for (const frm of document.querySelectorAll("section > form")) {
   frm.addEventListener("submit", function (e) {
     e.preventDefault();
     frm.reset();
+    createPersonIdEl.value = PersonStorage._nextId;
+    createPersonIdEl.setAttribute("min", PersonStorage._nextId);
   });
 }
+
+function refreshManageDataUI() {
+  // show the manage book UI and hide the other UIs
+  document.getElementById("Person-M").style.display = "block";
+  document.getElementById("Person-R").style.display = "none";
+  document.getElementById("Person-C").style.display = "none";
+  document.getElementById("Person-U").style.display = "none";
+  document.getElementById("Person-D").style.display = "none";
+}
+// Set up Manage Book UI
+refreshManageDataUI();
+
+// loading the data
+PersonStorage.retrieveAll();
+MovieStorage.retrieveAll();
 
 /******************************************************************************
  *** RETRIEVE AND LIST ********************************************************
@@ -55,6 +68,7 @@ const createFormEl = document.querySelector("section#Person-C > form"),
 document.getElementById("create").addEventListener("click", function () {
   document.getElementById("Person-M").style.display = "none";
   document.getElementById("Person-C").style.display = "block";
+  createPersonIdEl.setAttribute("min", PersonStorage._nextId);
 });
 // check validity on input
 createPersonIdEl.addEventListener("input", function () {
@@ -173,14 +187,3 @@ window.addEventListener("beforeunload", function () {
   PersonStorage.persist();
   MovieStorage.persist();
 });
-
-function refreshManageDataUI() {
-  // show the manage book UI and hide the other UIs
-  document.getElementById("Person-M").style.display = "block";
-  document.getElementById("Person-R").style.display = "none";
-  document.getElementById("Person-C").style.display = "none";
-  document.getElementById("Person-U").style.display = "none";
-  document.getElementById("Person-D").style.display = "none";
-}
-// Set up Manage Book UI
-refreshManageDataUI();
