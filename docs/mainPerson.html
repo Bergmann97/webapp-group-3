@@ -39,7 +39,9 @@
     </header>
     <main>
       <div class="wrapper clearfix">
+        <!-- ============================================================== -->
         <section id="Person-M" class="UI-Page">
+          <!-- ============================================================== -->
           <p>This app supports the following person managing options:</p>
           <div class="two-col-menu">
             <ul class="menu">
@@ -56,7 +58,9 @@
             </ul>
           </div>
         </section>
+        <!-- ============================================================== -->
         <section id="Person-R" class="UI-Page">
+          <!-- ============================================================== -->
           <h1>Retrieve and list all person records</h1>
           <table>
             <thead>
@@ -73,24 +77,28 @@
             </button>
           </div>
         </section>
+        <!-- ============================================================== -->
         <section id="Person-C" class="UI-Page">
+          <!-- ============================================================== -->
           <h1>Create a new person record</h1>
           <form>
             <div class="field">
               <label>ID: <input type="number" name="personId" min="1" id="pid" /></label>
             </div>
             <div class="field">
-              <label>Name: <input type="text" name="name" /></label>
+              <label>Name: <input type="text" name="personName" /></label>
             </div>
             <div class="button-group">
-              <button type="submit" name="commit">Save</button>
+              <button type="submit" name="create">Create</button>
               <button type="button" class="back-to-menu">
                 Back to person menu
               </button>
             </div>
           </form>
         </section>
+        <!-- ============================================================== -->
         <section id="Person-U" class="UI-Page">
+          <!-- ============================================================== -->
           <h1>Update a person record</h1>
           <form autocomplete="off">
             <div class="select-one">
@@ -106,11 +114,11 @@
               </label>
             </div>
             <div class="field">
-              <label>Name: <input type="text" name="name" /></label>
+              <label>Name: <input type="text" name="personName" /></label>
             </div>
             <div class="button-group">
-              <button type="submit" name="commit" disabled="disabled">
-                Save
+              <button type="submit" name="update" disabled="disabled">
+                Update
               </button>
               <button type="button" class="back-to-menu">
                 Back to person menu
@@ -118,7 +126,9 @@
             </div>
           </form>
         </section>
+        <!-- ============================================================== -->
         <section id="Person-D" class="UI-Page">
+          <!-- ============================================================== -->
           <h1>Delete a person record</h1>
           <form>
             <div class="select-one">
@@ -128,7 +138,7 @@
               ></label>
             </div>
             <div class="button-group">
-              <button type="submit" name="commit">Delete</button>
+              <button type="submit" name="delete">Delete</button>
               <button type="button" class="back-to-menu">
                 Back to person menu
               </button>

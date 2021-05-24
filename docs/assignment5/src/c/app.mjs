@@ -4,7 +4,7 @@ import { PersonStorage } from "../m/PersonStorage.js";
 /**
  *  Create and save test data
  */
-function generateTestData() {
+export function generateTestData() {
   try {
     PersonStorage.add({ personId: 1, name: "Stephen Frears" });
     PersonStorage.add({ personId: 2, name: "George Lucas" });
@@ -45,7 +45,7 @@ function generateTestData() {
 /**
  * Clear data
  */
-function clearData() {
+export function clearData() {
   if (confirm("Do you really want to delete the entire database?")) {
     try {
       MovieStorage.clear();
@@ -56,5 +56,3 @@ function clearData() {
     }
   }
 }
-
-export { generateTestData, clearData };

@@ -48,7 +48,7 @@ class PersonStorageClass {
 
   /**
    * updates the `Person` with the corresponding `slots.personId` and overwrites it's `name`.
-   * @param {{personId: number, name: string}} slots - Object creation slots
+   * @param {import("./Person.js").PersonSlots} slots - Object creation slots
    */
   update(slots) {
     const { personId, name } = slots;
@@ -233,30 +233,6 @@ class PersonStorageClass {
       localStorage[PERSON_STORAGE_KEY] = "{}";
       this.setNextId(1);
       console.info("All person records cleared.");
-    } catch (e) {
-      console.warn(`${e.constructor.name}: ${e.message}`);
-    }
-  }
-
-  /**
-   * creates a set of 4 `Person`s and stores it in the first 4 slots of the `this.instances`
-   * - TODO: upgrade to always push new person (requires ID automation)
-   */
-  createTestData() {
-    try {
-      this._instances[1] = new Person({ personId: 1, name: "Stephen Frears" });
-      this._instances[2] = new Person({ personId: 2, name: "George Lucas" });
-      this._instances[3] = new Person({
-        personId: 3,
-        name: "Quentin Tarantino",
-      });
-      this._instances[5] = new Person({ personId: 5, name: "Uma Thurman" });
-      this._instances[6] = new Person({ personId: 6, name: "John Travolta" });
-      this._instances[7] = new Person({ personId: 7, name: "Ewan McGregor" });
-      this._instances[8] = new Person({ personId: 8, name: "Natalie Portman" });
-      this._instances[9] = new Person({ personId: 9, name: "Keanu Reeves" });
-      this.setNextId(10);
-      this.persist();
     } catch (e) {
       console.warn(`${e.constructor.name}: ${e.message}`);
     }

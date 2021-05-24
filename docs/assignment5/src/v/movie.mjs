@@ -26,8 +26,7 @@ for (const frm of document.querySelector("section").querySelectorAll("form")) {
   frm.addEventListener("submit", (e) => {
     e.preventDefault();
     frm.reset();
-    createMovieIdInput.value = MovieStorage._nextId;
-    createMovieIdInput.setAttribute("min", MovieStorage._nextId);
+    createMovieIdInput.value = MovieStorage.nextId().toString();
   });
 }
 
@@ -66,7 +65,7 @@ document.getElementById("retrieveAndListAll").addEventListener("click", () => {
   tableBodyEl.innerHTML = ""; // drop old content
   for (const key of Object.keys(MovieStorage.instances)) {
     /** @type {Movie} */
-    const movie = MovieStorage._instances[key];
+    const movie = MovieStorage.instances[key];
     const row = tableBodyEl.insertRow();
     row.insertCell().textContent = movie.movieId.toString();
     row.insertCell().textContent = movie.title;
@@ -97,8 +96,6 @@ document.getElementById("create").addEventListener("click", () => {
   document.getElementById("Movie-M").style.display = "none";
   document.getElementById("Movie-C").style.display = "block";
 
-  createMovieIdInput.setAttribute("min", MovieStorage._nextId);
-
   fillSelectWithOptions(
     createDirectorSelection,
     PersonStorage.instances,
@@ -115,7 +112,7 @@ createMovieIdInput.addEventListener("input", () => {
     Movie.checkMovieId(createMovieIdInput.value).message
   );
 });
-createMovieIdInput.value = MovieStorage.nextId().toString();
+createMovieIdInput.value = MovieStorage.nextId().toString(); // initially the next free id
 
 /** ### TITLE -------------------------------------------------------
  * @type {HTMLInputElement} */
@@ -150,8 +147,8 @@ const createActorsSelection = createMovieForm["selectActors"];
 
 /** ### SAVE_BUTTON -------------------------------------------------
  * @type {HTMLButtonElement} */
-const createSaveButton = createMovieForm["save"];
-createSaveButton.addEventListener("click", () => {
+const createButton = createMovieForm["create"];
+createButton.addEventListener("click", () => {
   /** @type {import("../m/Movie.js").MovieSlots} */
   const slots = {
     movieId: createMovieIdInput.value,
@@ -167,6 +164,9 @@ createSaveButton.addEventListener("click", () => {
   );
   createTitleInput.setCustomValidity(
     Movie.checkTitle(createTitleInput.value).message
+  );
+  createReleaseDateInput.setCustomValidity(
+    Movie.checkReleaseDate(createReleaseDateInput.value).message
   );
   createDirectorSelection.setCustomValidity(
     Movie.checkDirector(createDirectorSelection.value).message
@@ -207,8 +207,8 @@ updateMovieSelection.addEventListener("change", () => {
   const movieId = updateMovieSelection.value;
 
   if (movieId) {
-    var movie = MovieStorage.instances[movieId];
-    updateMovieIdInput.value = movie.movieId.toString();
+    const movie = MovieStorage.instances[movieId];
+    updateMovieIdOutput.value = movie.movieId.toString();
     updateTitleInput.value = movie.title;
     updateReleaseDateInput.valueAsDate = movie.releaseDate;
 
@@ -231,16 +231,16 @@ updateMovieSelection.addEventListener("change", () => {
 
     updateDirectorSelection.selectedIndex = movie.director.personId;
 
-    updateSaveButton.disabled = false;
+    updateButton.disabled = false;
   } else {
     updateMovieForm.reset();
-    updateSaveButton.disabled = true;
+    updateButton.disabled = true;
   }
 });
 
 /** ### MOVIE_ID ----------------------------------------------------
- * @type {HTMLInputElement} */
-const updateMovieIdInput = updateMovieForm["movieId"];
+ * @type {HTMLOutputElement} */
+const updateMovieIdOutput = updateMovieForm["movieId"];
 
 /** ### TITLE -------------------------------------------------------
  * @type {HTMLInputElement} */
@@ -276,12 +276,12 @@ const updateActorsSelection =
 
 /** ### SAVE_BUTTON -------------------------------------------------
  * @type {HTMLButtonElement} */
-const updateSaveButton = updateMovieForm["save"];
-updateSaveButton.addEventListener("click", () => {
+const updateButton = updateMovieForm["update"];
+updateButton.addEventListener("click", () => {
   const multiChoiceListEl = updateActorsSelection.firstElementChild;
   /** @type {{movieId: number | string} & import("../m/MovieStorage.js").MovieUpdateSlots} */
   const slots = {
-    movieId: updateMovieIdInput.value,
+    movieId: updateMovieIdOutput.value,
     title: updateTitleInput.value,
     releaseDate: updateReleaseDateInput.value,
     director: updateDirectorSelection.value,
@@ -339,10 +339,6 @@ updateSaveButton.addEventListener("click", () => {
 /** # FROM
  * @type {HTMLFormElement} */
 const deleteMovieForm = document.querySelector("section#Movie-D > form");
-
-/** # MOVIE_SELECTION
- * @type {HTMLSelectElement} */
-const deleteMovieSelection = deleteMovieForm["selectMovie"];
 document.getElementById("destroy").addEventListener("click", () => {
   document.getElementById("Movie-M").style.display = "none";
   document.getElementById("Movie-D").style.display = "block";
@@ -350,7 +346,15 @@ document.getElementById("destroy").addEventListener("click", () => {
   fillSelectWithOptions(deleteMovieSelection, MovieStorage.instances, "title");
   deleteMovieForm.reset();
 });
-deleteMovieForm["delete"].addEventListener("click", () => {
+
+/** # MOVIE_SELECTION
+ * @type {HTMLSelectElement} */
+const deleteMovieSelection = deleteMovieForm["selectMovie"];
+
+/** ### SAVE_BUTTON -------------------------------------------------
+ * @type {HTMLButtonElement} */
+const deleteButton = deleteMovieForm["delete"];
+deleteButton.addEventListener("click", () => {
   const movieId = deleteMovieSelection.value;
   if (!movieId) return;
   if (confirm("Do you really want to delete this Movie?")) {

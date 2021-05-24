@@ -17,7 +17,7 @@ import { PersonStorage } from "./PersonStorage.js";
 /**
  * The primitive slots of the movie.
  * @typedef {object} PersonSlots
- * @prop {number} personId
+ * @prop {number | string} personId
  * @prop {string} name
  */
 
@@ -51,8 +51,8 @@ export class Person {
    */
   constructor({ personId, name }) {
     if (arguments.length > 0) {
-      this._personId = personId;
-      this._name = name;
+      this.personId = personId;
+      this.name = name;
       this._directedMovies = {};
       this._playedMovies = {};
     }

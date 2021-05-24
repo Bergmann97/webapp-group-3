@@ -20,8 +20,8 @@
 
     <script type="module">
       import { clearData, generateTestData } from "./assignment5/src/c/app.mjs";
-      const clearButton = document.getElementById("clearData"),
-        generateTestDataButtons = document.querySelectorAll("button.generateTestData");
+      const clearButton = document.getElementById("clearData");
+      const generateTestDataButtons = document.querySelectorAll("button.generateTestData");
       // Set event handlers for the buttons "clearData" and "generateTestData"
       clearButton.addEventListener("click", clearData);
       for (const btn of generateTestDataButtons) {
