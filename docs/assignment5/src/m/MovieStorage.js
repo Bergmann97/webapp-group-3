@@ -1,6 +1,7 @@
 import { cloneObject, compareDates } from "../../lib/util.js";
 import { Movie } from "./Movie.js";
 import { Person } from "./Person.js";
+import { PersonStorage } from "./PersonStorage.js";
 
 /** key for the `localStorage[key]` for the `this.instances` */
 const MOVIES_STORAGE_KEY = "movies";
@@ -105,7 +106,13 @@ class _MovieStorage {
           ? director !== movie.director.personId
           : director.personId
       ) {
+        const newDirector = PersonStorage.instances[director];
+        const directorBeforeUpdate = movie.director;
         movie.director = director;
+        // set the movie to the directed Movies of the person
+        newDirector._directedMovies[movie.movieId] = movie;
+        // delete this movie from the directed movies of the previous director
+        delete directorBeforeUpdate.directedMovies[movie.movieId];
         updatedProperties.push("director");
       }
 
@@ -165,9 +172,16 @@ class _MovieStorage {
   destroy(movieId) {
     if (this._instances[movieId]) {
       console.info(`${this._instances[movieId].toString()} deleted`);
+      const movie = this._instances[movieId];
+      // remove this movie from director and actors participated movies
+      delete movie.director.directedMovies[movie];
+      for (let actor in movie.actors) {
+        delete actor.playedMovies[movie];
+      }
+      // finally destroy the movie
       delete this._instances[movieId];
       // calculate nextId when last id is destroyed
-      // movieId === this._nextId.toString() && this.calculateNextId();
+      movieId === this._nextId.toString() && this.calculateNextId();
     } else {
       console.info(
         `There is no movie with id ${movieId} to delete from the database`

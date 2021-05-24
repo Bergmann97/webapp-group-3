@@ -33,15 +33,35 @@ export class Person {
    * @type {string}
    */
   _name;
+  /** movies, the person directed
+   * @private
+   * @type {Movie[]}
+   */
+  _directedMovies;
+  /** movies, the person played a role
+   * @private
+   * @type {Movie[]}
+   */
+  _playedMovies;
 
   /**
    * CONSTRUCTOR
    * @param {PersonSlots} slots - The Object creation slots
    */
-  constructor({ personId, name }) {
+  constructor({ personId, name, directedMovies, playedMovies }) {
     if (arguments.length > 0) {
       this._personId = personId;
       this._name = name;
+      if (directedMovies) {
+        this._directedMovies = directedMovies;
+      } else {
+        this._directedMovies = {};
+      }
+      if (playedMovies) {
+        this._playedMovies = playedMovies;
+      } else {
+        this._playedMovies = {};
+      }
     }
   }
 
@@ -166,6 +186,16 @@ export class Person {
     }
   }
 
+  // *** directed Movie *******************************************************
+  get directedMovies() {
+    return this._directedMovies;
+  }
+
+  // *** played  Movie ********************************************************
+  get playedMovies() {
+    return this._playedMovies;
+  }
+
   // *** serialization ********************************************************
 
   /**
@@ -179,6 +209,8 @@ export class Person {
       person = new Person({
         personId: slots.personId,
         name: slots.name,
+        directedMovies: slots.directedMovies,
+        playedMovies: slots.playedMovies,
       });
     } catch (e) {
       console.warn(
@@ -197,7 +229,11 @@ export class Person {
     const rec = {};
     for (let p of Object.keys(this)) {
       // copy only property slots with underscore prefix
-      if (p.charAt(0) === "_") {
+      if (
+        p.charAt(0) === "_" &&
+        p !== "_directedMovies" &&
+        p !== "_playedMovies"
+      ) {
         // remove underscore prefix
         rec[p.substr(1)] = this[p];
       }
@@ -207,6 +243,6 @@ export class Person {
 
   /** @returns the stringified Person */
   toString() {
-    return `Person{ personId: ${this.personId}, name: ${this.name} }`;
+    return `Person{ personId: ${this.personId}, name: ${this.name}, directedMovies: ${this.directedMovies}, playedMovies: ${this.playedMovies} }`;
   }
 }

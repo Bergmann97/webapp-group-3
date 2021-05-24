@@ -271,6 +271,8 @@ export class Movie {
     if (validationResult instanceof NoConstraintViolation) {
       // create the new director reference
       this._director = PersonStorage.instances[director_id];
+      // add this movie to the directed Movies of the person
+      this._director.directedMovies[this._movieId] = this;
     } else {
       throw validationResult;
     }
@@ -323,7 +325,10 @@ export class Movie {
     if (actor_id && validationResult instanceof NoConstraintViolation) {
       // add the new actor reference
       let key = String(actor_id);
+      // add actor to movie
       this._actors[key] = PersonStorage.instances[key];
+      // add movie to the person as played movie
+      this._actors[key].playedMovies[this._movieId] = this;
     } else {
       throw validationResult;
     }
@@ -350,8 +355,10 @@ export class Movie {
     const actor_id = typeof actor !== "object" ? actor : actor.personId;
     const validationResult = Movie.checkActor(actor_id);
     if (validationResult instanceof NoConstraintViolation) {
-      // delete the actor reference
+      // delete the actor reference from movie
       delete this._actors[String(actor_id)];
+      // delete this movie as reference from the persons played movies
+      delete this._actors[String(actor_id)].playedMovies[this._movieId];
     } else {
       throw validationResult;
     }
