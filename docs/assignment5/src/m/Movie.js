@@ -352,10 +352,10 @@ export class Movie {
     const actor_id = typeof actor !== "object" ? actor : actor.personId;
     const validationResult = Movie.checkActor(actor_id);
     if (validationResult instanceof NoConstraintViolation) {
-      // delete the actor reference from movie
-      delete this._actors[String(actor_id)];
       // delete this movie as reference from the persons played movies
       this._actors[String(actor_id)].removePlayedMovie(this);
+      // delete the actor reference from movie
+      delete this._actors[String(actor_id)];
     } else {
       throw validationResult;
     }
