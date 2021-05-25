@@ -1,4 +1,4 @@
-### Visit the [Pages of this repository](https://Bergmann97.github.io/webapp-group3/index.html) to see the projects live state
+### Visit the [Pages of this repository](https://bergmann97.github.io/webapp-group-3/) to see the projects live state
 
 # **Description** webapp-group3
 A tutorial-driven WebApp as an exam for the module 12431 Web Applications | SS 2021 at the Brandenburg Technical University. Group 3
