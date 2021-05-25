@@ -100,11 +100,11 @@ class MovieStorageClass {
       }
 
       // actors
-      if (actorsToAdd) {
+      if (actorsToAdd.length > 0) {
         movie.addActors(actorsToAdd);
         updatedProperties.push("actors(added)");
       }
-      if (actorsToRemove) {
+      if (actorsToRemove.length > 0) {
         movie.removeActors(actorsToRemove);
         updatedProperties.push("actors(removed)");
       }
