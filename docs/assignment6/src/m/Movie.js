@@ -53,7 +53,7 @@ export const MovieRatingEL = new Enumeration({
  * @typedef {object} MovieSlots
  * @prop {number | string} movieId
  * @prop {string} title
- * @prop {Date | string} releaseDate
+ * @prop {Date | string | undefined} releaseDate
  * @prop {Person | number | string} director
  * @prop {Person[] | number[] | string[] | {[key: string]: Person} | undefined} actors
  */
@@ -234,7 +234,9 @@ export class Movie {
    * @returns a ConstraintViolation
    */
   static checkReleaseDate(date) {
-    if (!isDateOrDateString(date)) {
+    if (!date || date === "") {
+      return new NoConstraintViolation();
+    } else if (!isDateOrDateString(date)) {
       return new RangeConstraintViolation(
         `The movie's releaseDate must be of type "Date" or a valid date string, but is (${date}: ${typeof date})!`
       );
@@ -247,6 +249,11 @@ export class Movie {
     } else {
       return new NoConstraintViolation();
     }
+  }
+
+  /** deletes the `releaseDate`of this movie */
+  deleteReleaseDate() {
+    delete this._releaseDate;
   }
 
   // *** director *************************************************************
@@ -262,14 +269,8 @@ export class Movie {
       typeof director !== "object" ? director : director.personId;
     const validationResult = Movie.checkDirector(director_id);
     if (validationResult instanceof NoConstraintViolation) {
-      // remove this movie from old director
-      if (this._director !== undefined) {
-        this._director.removeDirectedMovie(this);
-      }
       // create the new director reference
       this._director = PersonStorage.instances[director_id];
-      // add this movie to the directed Movies of the person
-      this._director.addDirectedMovie(this);
     } else {
       throw validationResult;
     }
@@ -322,10 +323,7 @@ export class Movie {
     if (actor_id && validationResult instanceof NoConstraintViolation) {
       // add the new actor reference
       let key = String(actor_id);
-      // add actor to movie
       this._actors[key] = PersonStorage.instances[key];
-      // add movie to the person as played movie
-      this._actors[key].addPlayedMovie(this);
     } else {
       throw validationResult;
     }
@@ -352,9 +350,7 @@ export class Movie {
     const actor_id = typeof actor !== "object" ? actor : actor.personId;
     const validationResult = Movie.checkActor(actor_id);
     if (validationResult instanceof NoConstraintViolation) {
-      // delete this movie as reference from the persons played movies
-      this._actors[String(actor_id)].removePlayedMovie(this);
-      // delete the actor reference from movie
+      // delete the actor reference
       delete this._actors[String(actor_id)];
     } else {
       throw validationResult;

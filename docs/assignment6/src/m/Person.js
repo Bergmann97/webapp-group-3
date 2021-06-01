@@ -11,13 +11,12 @@ import {
   isStringInRange,
   parseStringInteger,
 } from "../../lib/util.js";
-import { Movie } from "./Movie.js";
 import { PersonStorage } from "./PersonStorage.js";
 
 /**
  * The primitive slots of the movie.
  * @typedef {object} PersonSlots
- * @prop {number | string} personId
+ * @prop {number} personId
  * @prop {string} name
  */
 
@@ -34,16 +33,6 @@ export class Person {
    * @type {string}
    */
   _name;
-  /** movies, the person directed
-   * @private
-   * @type {{[movieId: number]: Movie}}
-   */
-  _directedMovies;
-  /** movies, the person played a role
-   * @private
-   * @type {{[movieId: number]: Movie}}
-   */
-  _playedMovies;
 
   /**
    * CONSTRUCTOR
@@ -51,10 +40,8 @@ export class Person {
    */
   constructor({ personId, name }) {
     if (arguments.length > 0) {
-      this.personId = personId;
-      this.name = name;
-      this._directedMovies = {};
-      this._playedMovies = {};
+      this._personId = personId;
+      this._name = name;
     }
   }
 
@@ -179,40 +166,6 @@ export class Person {
     }
   }
 
-  // *** directed Movie *******************************************************
-  /** @returns {{[movieId: number]: Movie}} the movies directed by this `Person` */
-  get directedMovies() {
-    return this._directedMovies;
-  }
-
-  /** @param {Movie} movie this `Person` directs */
-  addDirectedMovie(movie) {
-    this._directedMovies[movie.movieId] = movie;
-  }
-
-  /** @param {Movie | string} movie this `Person` does not direct anymore */
-  removeDirectedMovie(movie) {
-    const id = typeof movie !== "object" ? movie : movie.movieId;
-    delete this._directedMovies[id];
-  }
-
-  // *** played  Movie ********************************************************
-  /** @returns {{[movieId: number]: Movie}} the movies this `Person` acts in */
-  get playedMovies() {
-    return this._playedMovies;
-  }
-
-  /** @param {Movie} movie this `Person` acts in */
-  addPlayedMovie(movie) {
-    this._playedMovies[movie.movieId] = movie;
-  }
-
-  /** @param {Movie | string} movie this `Person` does not act anymore */
-  removePlayedMovie(movie) {
-    const id = typeof movie !== "object" ? movie : movie.movieId;
-    delete this._playedMovies[id];
-  }
-
   // *** serialization ********************************************************
 
   /**
@@ -244,11 +197,7 @@ export class Person {
     const rec = {};
     for (let p of Object.keys(this)) {
       // copy only property slots with underscore prefix
-      if (
-        p.charAt(0) === "_" &&
-        p !== "_directedMovies" &&
-        p !== "_playedMovies"
-      ) {
+      if (p.charAt(0) === "_") {
         // remove underscore prefix
         rec[p.substr(1)] = this[p];
       }
@@ -258,6 +207,6 @@ export class Person {
 
   /** @returns the stringified Person */
   toString() {
-    return `Person{ personId: ${this.personId}, name: ${this.name}, directedMovies: ${this.directedMovies}, playedMovies: ${this.playedMovies} }`;
+    return `Person{ personId: ${this.personId}, name: ${this.name} }`;
   }
 }

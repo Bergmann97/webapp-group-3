@@ -1,6 +1,4 @@
 import { cloneObject } from "../../lib/util.js";
-import { Movie } from "./Movie.js";
-import { MovieStorage } from "./MovieStorage.js";
 import { Person } from "./Person.js";
 
 /** key for the `localStorage[key]` for the `this.instances` */
@@ -9,7 +7,7 @@ const PERSON_STORAGE_KEY = "person";
 /**
  * internal
  */
-class PersonStorageClass {
+class _PersonStorage {
   /** the current instances of `Person`s used as a collection map
    * @private
    * @type {{[key: string]: Person}}
@@ -29,7 +27,7 @@ class PersonStorageClass {
   /**
    * adds a new Person created from the given `slots` to the collection of `Person`s
    * if the slots fulfill their constraints. Does nothing otherwise
-   * @param {import("./Person.js").PersonSlots} slots - Object creation slots
+   * @param {{personId: number, name: string}} slots - Object creation slots
    */
   add(slots) {
     let person = null;
@@ -48,12 +46,12 @@ class PersonStorageClass {
 
   /**
    * updates the `Person` with the corresponding `slots.personId` and overwrites it's `name`.
-   * @param {import("./Person.js").PersonSlots} slots - Object creation slots
+   * @param {{personId: number, name: string}} slots - Object creation slots
    */
   update(slots) {
     const { personId, name } = slots;
-    let noConstraintViolated = true;
-    let updatedProperties = [];
+    var noConstraintViolated = true;
+    var updatedProperties = [];
     const person = this._instances[personId];
     const objectBeforeUpdate = cloneObject(person);
 
@@ -103,23 +101,14 @@ class PersonStorageClass {
    *   );
    *   ```
    * @param {string} personId to delete
+   * @param {(person: Person) => void} onDestroy callback that can be used to delete references
    */
-  destroy(personId) {
-    const person = this._instances[personId];
+  destroy(personId, onDestroy) {
+    if (this._instances[personId]) {
+      // call onDestroy to make sure the references can be deleted to
+      // onDestroy(this._instances[personId]);
 
-    if (person) {
-      // delete all references within all movie objects
-      // directed movies
-      Object.keys(person.directedMovies).forEach((dirMovId) =>
-        MovieStorage.destroy(dirMovId)
-      );
-
-      // acted movies
-      Object.values(person.playedMovies).forEach((playMov) =>
-        playMov.removeActor(person)
-      );
-
-      // delete the person record
+      // delete the Person
       console.info(`${this._instances[personId].toString()} deleted`);
       delete this._instances[personId];
 
@@ -228,11 +217,37 @@ class PersonStorageClass {
    * clears all `Person`s from the `this.instances`
    */
   clear() {
+    // if (confirm("Do you really want to delete all person?")) {
     try {
       this._instances = {};
       localStorage[PERSON_STORAGE_KEY] = "{}";
       this.setNextId(1);
       console.info("All person records cleared.");
+    } catch (e) {
+      console.warn(`${e.constructor.name}: ${e.message}`);
+    }
+    // }
+  }
+
+  /**
+   * creates a set of 4 `Person`s and stores it in the first 4 slots of the `this.instances`
+   * - TODO: upgrade to always push new person (requires ID automation)
+   */
+  createTestData() {
+    try {
+      this._instances[1] = new Person({ personId: 1, name: "Stephen Frears" });
+      this._instances[2] = new Person({ personId: 2, name: "George Lucas" });
+      this._instances[3] = new Person({
+        personId: 3,
+        name: "Quentin Tarantino",
+      });
+      this._instances[5] = new Person({ personId: 5, name: "Uma Thurman" });
+      this._instances[6] = new Person({ personId: 6, name: "John Travolta" });
+      this._instances[7] = new Person({ personId: 7, name: "Ewan McGregor" });
+      this._instances[8] = new Person({ personId: 8, name: "Natalie Portman" });
+      this._instances[9] = new Person({ personId: 9, name: "Keanu Reeves" });
+      this.setNextId(10);
+      this.persist();
     } catch (e) {
       console.warn(`${e.constructor.name}: ${e.message}`);
     }
@@ -244,4 +259,4 @@ class PersonStorageClass {
  * - provides functions to create, retrieve, update and destroy `Person`s at the `localStorage`
  * - additionally provides auxiliary methods for testing
  */
-export const PersonStorage = new PersonStorageClass();
+export const PersonStorage = new _PersonStorage();

@@ -8,7 +8,7 @@ import { MovieStorage } from "../m/MovieStorage.js";
 import { PersonStorage } from "../m/PersonStorage.js";
 
 /******************************************************************************
- *** MOVIE UI *****************************************************************
+ *** UI ***********************************************************************
  *****************************************************************************/
 
 // set up back-to-menu buttons for all CRUD UIs
@@ -33,7 +33,6 @@ for (const frm of document.querySelector("section").querySelectorAll("form")) {
 // save data when leaving the page
 window.addEventListener("beforeunload", () => {
   MovieStorage.persist();
-  PersonStorage.persist();
 });
 
 function refreshManageDataUI() {
@@ -61,12 +60,12 @@ document.getElementById("retrieveAndListAll").addEventListener("click", () => {
   document.getElementById("Movie-R").style.display = "block";
 
   /** @type {HTMLTableSectionElement} */
-  const movieTable = document.querySelector("section#Movie-R > table > tbody");
-  movieTable.innerHTML = ""; // drop old content
+  const tableBodyEl = document.querySelector("section#Movie-R > table > tbody");
+  tableBodyEl.innerHTML = ""; // drop old content
   for (const key of Object.keys(MovieStorage.instances)) {
     /** @type {Movie} */
     const movie = MovieStorage.instances[key];
-    const row = movieTable.insertRow();
+    const row = tableBodyEl.insertRow();
     row.insertCell().textContent = movie.movieId.toString();
     row.insertCell().textContent = movie.title;
     if (movie.releaseDate) {
@@ -76,9 +75,9 @@ document.getElementById("retrieveAndListAll").addEventListener("click", () => {
     }
     row.insertCell().textContent =
       movie.director.name + " (ID:" + movie.director.personId + ")";
-    const actorsList = createListFromMap(movie.actors, "name");
-    if (actorsList.childElementCount > 0) {
-      row.insertCell().appendChild(actorsList);
+    const actorsListEl = createListFromMap(movie.actors, "name");
+    if (actorsListEl.childElementCount > 0) {
+      row.insertCell().appendChild(actorsListEl);
     } else {
       row.insertCell().textContent = "no actors";
     }
@@ -112,7 +111,7 @@ createMovieIdInput.addEventListener("input", () => {
     Movie.checkMovieId(createMovieIdInput.value).message
   );
 });
-createMovieIdInput.value = MovieStorage.nextId().toString(); // initially the next free id
+createMovieIdInput.value = MovieStorage.nextId().toString();
 
 /** ### TITLE -------------------------------------------------------
  * @type {HTMLInputElement} */
@@ -147,8 +146,8 @@ const createActorsSelection = createMovieForm["selectActors"];
 
 /** ### SAVE_BUTTON -------------------------------------------------
  * @type {HTMLButtonElement} */
-const createButton = createMovieForm["create"];
-createButton.addEventListener("click", () => {
+const createSaveButton = createMovieForm["save"];
+createSaveButton.addEventListener("click", () => {
   /** @type {import("../m/Movie.js").MovieSlots} */
   const slots = {
     movieId: createMovieIdInput.value,
@@ -164,9 +163,6 @@ createButton.addEventListener("click", () => {
   );
   createTitleInput.setCustomValidity(
     Movie.checkTitle(createTitleInput.value).message
-  );
-  createReleaseDateInput.setCustomValidity(
-    Movie.checkReleaseDate(createReleaseDateInput.value).message
   );
   createDirectorSelection.setCustomValidity(
     Movie.checkDirector(createDirectorSelection.value).message
@@ -208,7 +204,7 @@ updateMovieSelection.addEventListener("change", () => {
 
   if (movieId) {
     const movie = MovieStorage.instances[movieId];
-    updateMovieIdOutput.value = movie.movieId.toString();
+    updateMovieIdInput.value = movie.movieId.toString();
     updateTitleInput.value = movie.title;
     updateReleaseDateInput.valueAsDate = movie.releaseDate;
 
@@ -231,16 +227,16 @@ updateMovieSelection.addEventListener("change", () => {
 
     updateDirectorSelection.selectedIndex = movie.director.personId;
 
-    updateButton.disabled = false;
+    updateSaveButton.disabled = false;
   } else {
     updateMovieForm.reset();
-    updateButton.disabled = true;
+    updateSaveButton.disabled = true;
   }
 });
 
 /** ### MOVIE_ID ----------------------------------------------------
- * @type {HTMLOutputElement} */
-const updateMovieIdOutput = updateMovieForm["movieId"];
+ * @type {HTMLInputElement} */
+const updateMovieIdInput = updateMovieForm["movieId"];
 
 /** ### TITLE -------------------------------------------------------
  * @type {HTMLInputElement} */
@@ -276,12 +272,12 @@ const updateActorsSelection =
 
 /** ### SAVE_BUTTON -------------------------------------------------
  * @type {HTMLButtonElement} */
-const updateButton = updateMovieForm["update"];
-updateButton.addEventListener("click", () => {
+const updateSaveButton = updateMovieForm["save"];
+updateSaveButton.addEventListener("click", () => {
   const multiChoiceListEl = updateActorsSelection.firstElementChild;
   /** @type {{movieId: number | string} & import("../m/MovieStorage.js").MovieUpdateSlots} */
   const slots = {
-    movieId: updateMovieIdOutput.value,
+    movieId: updateMovieIdInput.value,
     title: updateTitleInput.value,
     releaseDate: updateReleaseDateInput.value,
     director: updateDirectorSelection.value,
@@ -339,6 +335,10 @@ updateButton.addEventListener("click", () => {
 /** # FROM
  * @type {HTMLFormElement} */
 const deleteMovieForm = document.querySelector("section#Movie-D > form");
+
+/** # MOVIE_SELECTION
+ * @type {HTMLSelectElement} */
+const deleteMovieSelection = deleteMovieForm["selectMovie"];
 document.getElementById("destroy").addEventListener("click", () => {
   document.getElementById("Movie-M").style.display = "none";
   document.getElementById("Movie-D").style.display = "block";
@@ -346,15 +346,7 @@ document.getElementById("destroy").addEventListener("click", () => {
   fillSelectWithOptions(deleteMovieSelection, MovieStorage.instances, "title");
   deleteMovieForm.reset();
 });
-
-/** # MOVIE_SELECTION
- * @type {HTMLSelectElement} */
-const deleteMovieSelection = deleteMovieForm["selectMovie"];
-
-/** ### SAVE_BUTTON -------------------------------------------------
- * @type {HTMLButtonElement} */
-const deleteButton = deleteMovieForm["delete"];
-deleteButton.addEventListener("click", () => {
+deleteMovieForm["delete"].addEventListener("click", () => {
   const movieId = deleteMovieSelection.value;
   if (!movieId) return;
   if (confirm("Do you really want to delete this Movie?")) {

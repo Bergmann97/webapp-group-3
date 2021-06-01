@@ -1,7 +1,6 @@
 import { cloneObject, compareDates } from "../../lib/util.js";
 import { Movie } from "./Movie.js";
 import { Person } from "./Person.js";
-import { PersonStorage } from "./PersonStorage.js";
 
 /** key for the `localStorage[key]` for the `this.instances` */
 const MOVIES_STORAGE_KEY = "movies";
@@ -18,7 +17,7 @@ const MOVIES_STORAGE_KEY = "movies";
 /**
  * internal
  */
-class MovieStorageClass {
+class _MovieStorage {
   /** the current instances of `Movie`s used as a collection map
    * @private
    * @type {{[key: string]: Movie}}
@@ -83,28 +82,39 @@ class MovieStorageClass {
       }
 
       // update releaseDate
-      if (compareDates(releaseDate, movie.releaseDate) !== 0) {
-        movie.releaseDate = releaseDate;
-        updatedProperties.push("releaseDate");
+      switch (compareDates(releaseDate, movie.releaseDate)) {
+        // no change
+        case 0:
+          break;
+        // slots.releaseDate has an empty value that is new
+        case -2:
+          movie.deleteReleaseDate();
+          updatedProperties.push("releaseDate");
+          break;
+        // slots.releaseDate has a non-empty value that is new
+        default:
+          // @ts-ignore
+          movie.releaseDate = releaseDate;
+          updatedProperties.push("releaseDate");
+          break;
       }
 
       // director
       if (
         typeof director !== "object"
-          ? director.toString() !== movie.director.personId.toString()
-          : director.personId !== movie.director.personId
+          ? director !== movie.director.personId
+          : director.personId
       ) {
-        // Director's directed movies are changed within Movie::set director
         movie.director = director;
         updatedProperties.push("director");
       }
 
       // actors
-      if (actorsToAdd.length > 0) {
+      if (actorsToAdd) {
         movie.addActors(actorsToAdd);
         updatedProperties.push("actors(added)");
       }
-      if (actorsToRemove.length > 0) {
+      if (actorsToRemove) {
         movie.removeActors(actorsToRemove);
         updatedProperties.push("actors(removed)");
       }
@@ -155,13 +165,6 @@ class MovieStorageClass {
   destroy(movieId) {
     if (this._instances[movieId]) {
       console.info(`${this._instances[movieId].toString()} deleted`);
-      const movie = this._instances[movieId];
-      // remove this movie from director and actors participated movies
-      movie.director.removeDirectedMovie(movie);
-      for (let actor of Object.values(movie.actors)) {
-        actor.removePlayedMovie(movie);
-      }
-      // finally destroy the movie
       delete this._instances[movieId];
       // calculate nextId when last id is destroyed
       movieId === this._nextId.toString() && this.calculateNextId();
@@ -169,6 +172,23 @@ class MovieStorageClass {
       console.info(
         `There is no movie with id ${movieId} to delete from the database`
       );
+    }
+  }
+
+  /**
+   * deletes all `Movie`s from the storage that match with the corresponding `filter`
+   * - eg.:
+   *   ```javascript
+   *   MovieStorage.destroyAll((movie) => movie.director.name === "Mr. Kaplan");
+   *   ```
+   * - the `filter` is optional and defaults to *all movies*
+   * @param {(movie: Movie) => boolean} filter that the movies have to fulfill with `true` to be deleted (defaults to all movies)
+   */
+  destroyAll(filter = (a) => true) {
+    for (const mKey in this._instances) {
+      if (Object.hasOwnProperty.call(this._instances, mKey)) {
+        filter(this._instances[mKey]) && delete this._instances[mKey];
+      }
     }
   }
 
@@ -264,6 +284,7 @@ class MovieStorageClass {
    * clears all `Movie`s from the `this.instances`
    */
   clear() {
+    // if (confirm("Do you really want to delete all movies?")) {
     try {
       this._instances = {};
       localStorage[MOVIES_STORAGE_KEY] = "{}";
@@ -272,6 +293,7 @@ class MovieStorageClass {
     } catch (e) {
       console.warn(`${e.constructor.name}: ${e.message}`);
     }
+    // }
   }
 }
 
@@ -280,4 +302,4 @@ class MovieStorageClass {
  * - provides functions to create, retrieve, update and destroy `Movie`s at the `localStorage`
  * - additionally provides auxiliary methods for testing
  */
-export const MovieStorage = new MovieStorageClass();
+export const MovieStorage = new _MovieStorage();
