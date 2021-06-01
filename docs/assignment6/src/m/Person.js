@@ -1,3 +1,4 @@
+import { Enumeration } from "../../lib/Enumeration.js";
 import {
   IntervalConstraintViolation,
   MandatoryValueConstraintViolation,
@@ -13,11 +14,15 @@ import {
 } from "../../lib/util.js";
 import { PersonStorage } from "./PersonStorage.js";
 
+export const PersonTypeEL = new Enumeration(["Director", "Actor", "Agent"]);
+
 /**
  * The primitive slots of the movie.
  * @typedef {object} PersonSlots
  * @prop {number} personId
  * @prop {string} name
+ * @prop {PersonTypeEL} category
+ * @prop {Person} agent
  */
 
 export class Person {
@@ -33,15 +38,35 @@ export class Person {
    * @type {string}
    */
   _name;
+  /** the kind of the person
+   * @private
+   * @type {PersonTypeEL}
+   */
+  _category;
+  /** the Person that is the agent of this person
+   * @private
+   * @type {Person}
+   */
+  _agent;
 
   /**
    * CONSTRUCTOR
    * @param {PersonSlots} slots - The Object creation slots
    */
-  constructor({ personId, name }) {
+  constructor({ personId, name, category, agent }) {
     if (arguments.length > 0) {
       this._personId = personId;
       this._name = name;
+      if (category) {
+        this._category = category;
+      } else {
+        this._category = null;
+      }
+      if (agent) {
+        this._agent = agent;
+      } else {
+        this._agent = null;
+      }
     }
   }
 
@@ -166,6 +191,75 @@ export class Person {
     }
   }
 
+  // *** category *************************************************************
+
+  /** @returns {PersonTypeEL} the category the person belongs to */
+  get category() {
+    return this._category;
+  }
+
+  /** @param {PersonTypeEL} personType - the new category to set */
+  set category(personType) {
+    const validationResult = Person.checkCategory(personType);
+    if (validationResult instanceof NoConstraintViolation) {
+      this._category = personType;
+    } else {
+      throw validationResult;
+    }
+  }
+
+  /**
+   * checks if the given category is legit
+   * @param {string} category to check
+   * @returns a ConstraintViolation
+   * @public
+   */
+  static checkCategory(category) {
+    if (category) {
+      if (isIntegerOrIntegerString(category)) {
+        if (parseInt(category) < 1 || parseInt(category) > PersonTypeEL.MAX) {
+          return new RangeConstraintViolation("Invalid value for category!");
+        }
+      } else {
+        return new RangeConstraintViolation("Invalid value for category!");
+      }
+      return new NoConstraintViolation();
+    } else {
+      return new NoConstraintViolation();
+    }
+  }
+
+  // *** agent ****************************************************************
+
+  /** @returns {Person} the person that is agent of this person */
+  get agent() {
+    return this._agent;
+  }
+
+  /** @param {Person} agent as person to set */
+  set agent(agent) {
+    const validationResult = Person.checkAgent(agent);
+    if (validationResult instanceof NoConstraintViolation) {
+      this._agent = agent;
+    } else {
+      throw validationResult;
+    }
+  }
+
+  /**
+   * checks if the given agent is legit
+   * @param {string | number} agent as personID to check
+   * @returns a ConstraintViolation
+   * @public
+   */
+  static checkAgent(agent) {
+    if (agent) {
+      return Person.checkPersonIdAsIdRef(agent);
+    } else {
+      return new NoConstraintViolation();
+    }
+  }
+
   // *** serialization ********************************************************
 
   /**
@@ -179,6 +273,8 @@ export class Person {
       person = new Person({
         personId: slots.personId,
         name: slots.name,
+        category: slots.category,
+        agent: slots.agent,
       });
     } catch (e) {
       console.warn(
@@ -207,6 +303,18 @@ export class Person {
 
   /** @returns the stringified Person */
   toString() {
-    return `Person{ personId: ${this.personId}, name: ${this.name} }`;
+    var addString = "";
+    if (this._category) {
+      addString = addString + `, ${this.category} `;
+    }
+    if (this._agent) {
+      addString = addString + `, ${this.agent} `;
+    }
+
+    return (
+      `Person{ personId: ${this.personId}, name: ${this.name}` +
+      addString +
+      ` }`
+    );
   }
 }
