@@ -67,8 +67,8 @@
               <tr>
                 <th id="personId">Person ID</th>
                 <th id="name">Name</th>
-                <th id="director">Director</th>
-                <th id="actor">Actor</th>
+                <th id="types">Types</th>
+                <th id="agent">Agent</th>
               </tr>
             </thead>
             <tbody></tbody>
@@ -89,6 +89,12 @@
             </div>
             <div class="field">
               <label>Name: <input type="text" name="personName" /></label>
+            </div>
+            <div class="select-one">
+              <label
+                >Select Agent:
+                <select name="selectAgent"></select>
+              </label>
             </div>
             <div class="button-group">
               <button type="submit" name="create">Create</button>
@@ -117,6 +123,12 @@
             </div>
             <div class="field">
               <label>Name: <input type="text" name="personName" /></label>
+            </div>
+            <div class="select-one">
+              <label
+                >Select Agent:
+                <select name="selectAgent"></select>
+              </label>
             </div>
             <div class="button-group">
               <button type="submit" name="update" disabled="disabled">

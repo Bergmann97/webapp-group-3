@@ -21,7 +21,7 @@ export const PersonTypeEL = new Enumeration(["Director", "Actor", "Agent"]);
  * @typedef {object} PersonSlots
  * @prop {number} personId
  * @prop {string} name
- * @prop {PersonTypeEL} category
+ * @prop {PersonTypeEL[]} category
  * @prop {Person} agent
  */
 
@@ -40,9 +40,9 @@ export class Person {
   _name;
   /** the kind of the person
    * @private
-   * @type {PersonTypeEL}
+   * @type {PersonTypeEL[]}
    */
-  _category;
+  // _category;
   /** the Person that is the agent of this person
    * @private
    * @type {Person}
@@ -57,11 +57,11 @@ export class Person {
     if (arguments.length > 0) {
       this._personId = personId;
       this._name = name;
-      if (category) {
-        this._category = category;
-      } else {
-        this._category = null;
-      }
+      // if (category) {
+      //   this._category = category;
+      // } else {
+      //   this._category = [];
+      // }
       if (agent) {
         this._agent = agent;
       } else {
@@ -193,41 +193,41 @@ export class Person {
 
   // *** category *************************************************************
 
-  /** @returns {PersonTypeEL} the category the person belongs to */
-  get category() {
-    return this._category;
-  }
+  // /** @returns {PersonTypeEL} the category the person belongs to */
+  // get category() {
+  //   return this._category;
+  // }
 
-  /** @param {PersonTypeEL} personType - the new category to set */
-  set category(personType) {
-    const validationResult = Person.checkCategory(personType);
-    if (validationResult instanceof NoConstraintViolation) {
-      this._category = personType;
-    } else {
-      throw validationResult;
-    }
-  }
+  // /** @param {PersonTypeEL} personType - the new category to set */
+  // set category(personType) {
+  //   const validationResult = Person.checkCategory(personType);
+  //   if (validationResult instanceof NoConstraintViolation) {
+  //     this._category = personType;
+  //   } else {
+  //     throw validationResult;
+  //   }
+  // }
 
-  /**
-   * checks if the given category is legit
-   * @param {string} category to check
-   * @returns a ConstraintViolation
-   * @public
-   */
-  static checkCategory(category) {
-    if (category) {
-      if (isIntegerOrIntegerString(category)) {
-        if (parseInt(category) < 1 || parseInt(category) > PersonTypeEL.MAX) {
-          return new RangeConstraintViolation("Invalid value for category!");
-        }
-      } else {
-        return new RangeConstraintViolation("Invalid value for category!");
-      }
-      return new NoConstraintViolation();
-    } else {
-      return new NoConstraintViolation();
-    }
-  }
+  // /**
+  //  * checks if the given category is legit
+  //  * @param {string} category to check
+  //  * @returns a ConstraintViolation
+  //  * @public
+  //  */
+  // static checkCategory(category) {
+  //   if (category) {
+  //     if (isIntegerOrIntegerString(category)) {
+  //       if (parseInt(category) < 1 || parseInt(category) > PersonTypeEL.MAX) {
+  //         return new RangeConstraintViolation("Invalid value for category!");
+  //       }
+  //     } else {
+  //       return new RangeConstraintViolation("Invalid value for category!");
+  //     }
+  //     return new NoConstraintViolation();
+  //   } else {
+  //     return new NoConstraintViolation();
+  //   }
+  // }
 
   // *** agent ****************************************************************
 

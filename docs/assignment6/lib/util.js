@@ -17,23 +17,25 @@ export function cloneObject(obj) {
   for (p in obj) {
     if (obj.hasOwnProperty(p)) {
       val = obj[p];
-      if (
-        typeof val === "number" ||
-        typeof val === "string" ||
-        typeof val === "boolean" ||
-        val instanceof Date ||
-        /* typed object reference */
-        (typeof val === "object" && !!val.constructor) ||
-        /* list of data values */
-        (Array.isArray(val) && !val.some((el) => typeof el === "object")) ||
-        /* list of typed object references */
-        (Array.isArray(val) &&
-          val.every((el) => typeof el === "object" && !!el.constructor))
-      ) {
-        if (Array.isArray(val)) clone[p] = val.slice(0);
-        else clone[p] = val;
+      if (val) {
+        if (
+          typeof val === "number" ||
+          typeof val === "string" ||
+          typeof val === "boolean" ||
+          val instanceof Date ||
+          /* typed object reference */
+          (typeof val === "object" && !!val.constructor) ||
+          /* list of data values */
+          (Array.isArray(val) && !val.some((el) => typeof el === "object")) ||
+          /* list of typed object references */
+          (Array.isArray(val) &&
+            val.every((el) => typeof el === "object" && !!el.constructor))
+        ) {
+          if (Array.isArray(val)) clone[p] = val.slice(0);
+          else clone[p] = val;
+        }
+        // else clone[p] = cloneObject(val);
       }
-      // else clone[p] = cloneObject(val);
     }
   }
   return clone;

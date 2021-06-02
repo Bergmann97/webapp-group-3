@@ -49,7 +49,7 @@ class _PersonStorage {
    * @param {{personId: number, name: string}} slots - Object creation slots
    */
   update(slots) {
-    const { personId, name } = slots;
+    const { personId, name, agent } = slots;
     var noConstraintViolated = true;
     var updatedProperties = [];
     const person = this._instances[personId];
@@ -60,6 +60,11 @@ class _PersonStorage {
       if (person.name !== name) {
         person.name = name;
         updatedProperties.push("name");
+      }
+      // update agent
+      if (person.agent !== agent) {
+        person.agent = agent;
+        updatedProperties.push("agent");
       }
     } catch (e) {
       console.warn(`${e.constructor.name}: ${e.message}`);
