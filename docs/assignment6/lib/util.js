@@ -47,7 +47,9 @@ export function cloneObject(obj) {
  * @returns {boolean} `true` if the date is a `Date` or a string that can be parsed to a date
  */
 export function isDateOrDateString(date) {
-  return date instanceof Date || !isNaN(Date.parse(date));
+  return (
+    date !== undefined && (date instanceof Date || !isNaN(Date.parse(date)))
+  );
 }
 
 /**

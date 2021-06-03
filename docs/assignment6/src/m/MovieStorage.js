@@ -1,3 +1,4 @@
+import { FrozenValueConstraintViolation } from "../../lib/errorTypes.js";
 import { cloneObject, compareDates } from "../../lib/util.js";
 import { Movie } from "./Movie.js";
 import { Person } from "./Person.js";
@@ -8,16 +9,20 @@ const MOVIES_STORAGE_KEY = "movies";
 /** The slots for updating a `Movie`
  * @typedef {object} MovieUpdateSlots
  * @prop {string} [title]
- * @prop {Date | string | undefined} [releaseDate]
+ * @prop {Date | string} [releaseDate]
  * @prop {Person | number | string} [director]
  * @prop {Person[] | number[] | string[] | {[key: string]: Person}} [actorsToAdd]
  * @prop {Person[] | number[] | string[] | {[key: string]: Person}} [actorsToRemove]
+ * @prop {number | string} [category]
+ * @prop {Person} [about]
+ * @prop {string} [tvSeriesName]
+ * @prop {number | string} [episodeNo]
  */
 
 /**
  * internal
  */
-class _MovieStorage {
+class MovieStorageClass {
   /** the current instances of `Movie`s used as a collection map
    * @private
    * @type {{[key: string]: Movie}}
@@ -68,6 +73,10 @@ class _MovieStorage {
       director,
       actorsToAdd,
       actorsToRemove,
+      category,
+      about,
+      episodeNo,
+      tvSeriesName,
     } = slots;
     let noConstraintViolated = true;
     let updatedProperties = [];
@@ -82,21 +91,9 @@ class _MovieStorage {
       }
 
       // update releaseDate
-      switch (compareDates(releaseDate, movie.releaseDate)) {
-        // no change
-        case 0:
-          break;
-        // slots.releaseDate has an empty value that is new
-        case -2:
-          movie.deleteReleaseDate();
-          updatedProperties.push("releaseDate");
-          break;
-        // slots.releaseDate has a non-empty value that is new
-        default:
-          // @ts-ignore
-          movie.releaseDate = releaseDate;
-          updatedProperties.push("releaseDate");
-          break;
+      if (compareDates(releaseDate, movie.releaseDate) !== 0) {
+        movie.releaseDate = releaseDate;
+        updatedProperties.push("releaseDate");
       }
 
       // director
@@ -117,6 +114,40 @@ class _MovieStorage {
       if (actorsToRemove) {
         movie.removeActors(actorsToRemove);
         updatedProperties.push("actors(removed)");
+      }
+
+      // category
+      if (category) {
+        if (movie.category === undefined) {
+          movie.category = category;
+          updatedProperties.push("category");
+        } else if (category !== movie.category) {
+          throw new FrozenValueConstraintViolation(
+            "The movie category must not be changed!"
+          );
+        }
+      } else if (category === "" && "category" in movie) {
+        throw new FrozenValueConstraintViolation(
+          "The movie category must not be unset!"
+        );
+      }
+
+      // about
+      if (movie.about !== about) {
+        movie.about = about;
+        updatedProperties.push("about");
+      }
+
+      // episodeNo
+      if (movie.episodeNo !== episodeNo) {
+        movie.episodeNo = episodeNo;
+        updatedProperties.push("episodeNo");
+      }
+
+      // tvSeriesName
+      if (movie.tvSeriesName !== tvSeriesName) {
+        movie.tvSeriesName = tvSeriesName;
+        updatedProperties.push("tvSeriesName");
       }
     } catch (e) {
       console.warn(`${e.constructor.name}: ${e.message}`);
@@ -302,4 +333,4 @@ class _MovieStorage {
  * - provides functions to create, retrieve, update and destroy `Movie`s at the `localStorage`
  * - additionally provides auxiliary methods for testing
  */
-export const MovieStorage = new _MovieStorage();
+export const MovieStorage = new MovieStorageClass();

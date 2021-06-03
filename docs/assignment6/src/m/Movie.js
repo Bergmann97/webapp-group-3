@@ -3,6 +3,8 @@
  */
 import { Enumeration } from "../../lib/Enumeration.js";
 import {
+  ConstraintViolation,
+  FrozenValueConstraintViolation,
   IntervalConstraintViolation,
   MandatoryValueConstraintViolation,
   NoConstraintViolation,
@@ -23,39 +25,23 @@ import { PersonStorage } from "./PersonStorage.js";
 
 // *** ENUMERATIONS ***********************************************************
 
-export const GenreEL = new Enumeration([
-  "Action",
-  "Adventure",
-  "Animation",
-  "Comedy",
-  "Crime",
-  "Documentary",
-  "Drama",
-  "Fantasy",
-  "Family",
-  "Film-Noir",
-  "Horror",
-  "Musical",
-  "Romance",
-  "Sci-Fi",
-  "War",
+export const MovieCategoryEL = new Enumeration([
+  "Biography",
+  "TvSeriesEpisode",
 ]);
-export const MovieRatingEL = new Enumeration({
-  G: "General Audiences",
-  PG: "Parental Guidance",
-  PG13: "Not Under 13",
-  R: "Restricted",
-  NC17: "Not Under 17",
-});
 
 /**
  * The creation slots of the movie.
  * @typedef {object} MovieSlots
  * @prop {number | string} movieId
  * @prop {string} title
- * @prop {Date | string | undefined} releaseDate
+ * @prop {Date | string} releaseDate
  * @prop {Person | number | string} director
- * @prop {Person[] | number[] | string[] | {[key: string]: Person} | undefined} actors
+ * @prop {Person[] | number[] | string[] | {[key: string]: Person} } [actors]
+ * @prop {number | string} [category]
+ * @prop {Person} [about]
+ * @prop {string} [tvSeriesName]
+ * @prop {number | string} [episodeNo]
  */
 
 /**
@@ -78,7 +64,6 @@ export class Movie {
   _title;
 
   /** the date the movie was released
-   * - optional
    * - Date
    * - min: "1895-12-28"
    * @private
@@ -100,23 +85,60 @@ export class Movie {
    */
   _actors;
 
+  /** the (optional) category of this
+   * - optional Enumeration
+   * @private
+   * @type {number}
+   */
+  _category;
+
+  /** the `Person` the `Biography`is about
+   * - depended required Person
+   * @private
+   * @type {Person}
+   */
+  _about;
+
+  /** the official title of the TV series this episode is from
+   * - depended required NonEmptyString
+   * @private
+   * @type {string}
+   */
+  _tvSeriesName;
+
+  /** the number of the episode
+   * - depended required PositiveInteger
+   *
+   * @private
+   * @type {number}
+   */
+  _episodeNo;
+
   /**
    * CONSTRUCTOR
    * @param {MovieSlots} slots - Object creation slots
    */
-  constructor({ movieId, title, releaseDate, director, actors }) {
+  constructor({
+    movieId,
+    title,
+    releaseDate,
+    director,
+    actors,
+    category,
+    about,
+    tvSeriesName,
+    episodeNo,
+  }) {
     if (arguments.length > 0) {
       this.movieId = movieId;
       this.title = title;
-      if (releaseDate) {
-        this.releaseDate = releaseDate;
-      }
+      this.releaseDate = releaseDate;
       this.director = director;
-      if (actors) {
-        this.actors = actors;
-      } else {
-        this.actors = [];
-      }
+      this.actors = actors ?? [];
+      this.category = category;
+      this.about = about;
+      this.tvSeriesName = tvSeriesName;
+      this.episodeNo = episodeNo;
     }
   }
 
@@ -155,7 +177,7 @@ export class Movie {
       );
     } else if (!isIntegerOrIntegerString(movieId)) {
       return new RangeConstraintViolation(
-        `The movie's movieId  must be an Integer, but is (${movieId}: ${typeof Movie})!`
+        `The movie's movieId  must be an Integer, but is (${movieId}: ${typeof movieId})!`
       );
     } else if (parseStringInteger(movieId) < 0) {
       return new IntervalConstraintViolation(
@@ -234,9 +256,7 @@ export class Movie {
    * @returns a ConstraintViolation
    */
   static checkReleaseDate(date) {
-    if (!date || date === "") {
-      return new NoConstraintViolation();
-    } else if (!isDateOrDateString(date)) {
+    if (!isDateOrDateString(date)) {
       return new RangeConstraintViolation(
         `The movie's releaseDate must be of type "Date" or a valid date string, but is (${date}: ${typeof date})!`
       );
@@ -357,6 +377,196 @@ export class Movie {
     }
   }
 
+  // *** category *************************************************************
+
+  /**
+   * @returns {number} the (enum) number of the movie's category.
+   * Use with `MovieCategoryEL[category]`.
+   */
+  get category() {
+    return this._category;
+  }
+
+  /** @param {number | string} category - the (enum) number of the category */
+  set category(category) {
+    const validationResult = this.category
+      ? new FrozenValueConstraintViolation(
+          `The movie's category (${this.category}) must not be changed (to${category})`
+        )
+      : Movie.checkCategory(category);
+    if (validationResult instanceof NoConstraintViolation) {
+      this._category = parseStringInteger(category);
+    } else {
+      throw validationResult;
+    }
+  }
+
+  /**
+   * checks if the given category is part of the enum `MovieCategoryEL`
+   * @param {number | string} category the (enum) number of the movies category
+   * @returns a ConstraintViolation
+   */
+  static checkCategory(category) {
+    if (!category || "") {
+      return new NoConstraintViolation(); // optional
+    } else if (!isIntegerOrIntegerString(category)) {
+      return new RangeConstraintViolation(
+        `The movie's category must be of type number, but is (${category}: ${typeof category})!`
+      );
+    } else if (
+      parseStringInteger(category) < 1 ||
+      parseStringInteger(category) > MovieCategoryEL.MAX
+    ) {
+      return new IntervalConstraintViolation(
+        `The movie's category (${category}) is not in the enumeration MovieCategoryEL [1,${MovieCategoryEL.MAX}]`
+      );
+    } else {
+      return new NoConstraintViolation();
+    }
+  }
+
+  // *** about ****************************************************************
+
+  /** @returns {Person} the `Person` this biography is about */
+  get about() {
+    return this._about;
+  }
+
+  /** @param {Person | number | string} about the `Person` or it's `personId` */
+  set about(about) {
+    const about_id = typeof about !== "object" ? about : about.personId;
+    const validationResult = Movie.checkAbout(about_id, this.category);
+    if (validationResult instanceof NoConstraintViolation) {
+      // create the new about reference
+      this._about = PersonStorage.instances[about_id];
+    } else {
+      throw validationResult;
+    }
+  }
+
+  /**
+   * @param {number | string} about_id
+   * @param {number} movieCategory
+   */
+  static checkAbout(about_id, movieCategory) {
+    const category = parseStringInteger(movieCategory);
+    if (category === MovieCategoryEL["BIOGRAPHY"] && !about_id) {
+      return new MandatoryValueConstraintViolation(
+        "A biography movie must have an 'about' field!"
+      );
+    } else if (category !== MovieCategoryEL["BIOGRAPHY"] && about_id) {
+      return new ConstraintViolation(
+        "An 'about' field value must not " +
+          "be provided if the movie is not a biography!"
+      );
+    } else if (about_id) {
+      return Person.checkPersonIdAsIdRef(about_id);
+    } else {
+      return new NoConstraintViolation();
+    }
+  }
+
+  // *** tvSeriesName *********************************************************
+
+  /** @returns {string} the official title of the TV series this episode is from */
+  get tvSeriesName() {
+    return this._tvSeriesName;
+  }
+
+  /** @param {string} tvSeriesName - the new tvSeriesName to set */
+  set tvSeriesName(tvSeriesName) {
+    const validationResult = Movie.checkTvSeriesName(
+      tvSeriesName,
+      this.category
+    );
+    if (validationResult instanceof NoConstraintViolation) {
+      this._tvSeriesName = tvSeriesName.trim();
+    } else {
+      throw validationResult;
+    }
+  }
+
+  /**
+   * checks if the given tvSeriesName is present and not empty
+   * @param {string} tvSeriesName
+   * @param {number} movieCategory
+   * @public
+   */
+  static checkTvSeriesName(tvSeriesName, movieCategory) {
+    const category = parseStringInteger(movieCategory);
+    if (category === MovieCategoryEL["TvSeriesEpisode"] && !tvSeriesName) {
+      return new MandatoryValueConstraintViolation(
+        "A TvSeriesEpisode must have a 'tvSeriesName' field!"
+      );
+    } else if (
+      category !== MovieCategoryEL["TvSeriesEpisode"] &&
+      tvSeriesName
+    ) {
+      return new ConstraintViolation(
+        "An 'tvSeriesName' field value must not " +
+          "be provided if the movie is not a TvSeriesEpisode!"
+      );
+    } else if (!isStringInRange(tvSeriesName.trim(), 1)) {
+      return new IntervalConstraintViolation(
+        `The movie's tvSeriesName must have a length of at least 1 letter, but is ${tvSeriesName.length}!`
+      );
+    } else {
+      return new NoConstraintViolation();
+    }
+  }
+
+  // *** episodeNo ************************************************************
+
+  /**
+   * @returns {number} the number of the episode
+   */
+  get episodeNo() {
+    return this._episodeNo;
+  }
+
+  /**
+   * sets a new episodeNo
+   * @param {number | string} episodeNo
+   */
+  set episodeNo(episodeNo) {
+    const validationResult = Movie.checkEpisodeNo(episodeNo, this.category);
+    if (validationResult instanceof NoConstraintViolation) {
+      this._episodeNo = parseStringInteger(episodeNo);
+    } else {
+      throw validationResult;
+    }
+  }
+
+  /**
+   * checks if the given episodeNo is present and > 0
+   * @param {number | string} episodeNo
+   * @param {number} movieCategory
+   * @returns a ConstraintViolation
+   */
+  static checkEpisodeNo(episodeNo, movieCategory) {
+    const category = parseStringInteger(movieCategory);
+    if (category === MovieCategoryEL["TvSeriesEpisode"] && !episodeNo) {
+      return new MandatoryValueConstraintViolation(
+        "A TvSeriesEpisode must have a 'episodeNo' field!"
+      );
+    } else if (category !== MovieCategoryEL["TvSeriesEpisode"] && episodeNo) {
+      return new ConstraintViolation(
+        "An 'episodeNo' field value must not " +
+          "be provided if the movie is not a TvSeriesEpisode!"
+      );
+    } else if (!isIntegerOrIntegerString(episodeNo)) {
+      return new RangeConstraintViolation(
+        `The tvSeriesEpisode's episodeNo must be an Integer, but is (${episodeNo}: ${typeof episodeNo})!`
+      );
+    } else if (parseStringInteger(episodeNo) < 0) {
+      return new IntervalConstraintViolation(
+        `The tvSeriesEpisode's episodeNo must be larger than 0, but is ${episodeNo}!`
+      );
+    } else {
+      return new NoConstraintViolation();
+    }
+  }
+
   // *** serialization ********************************************************
 
   /**
@@ -419,6 +629,16 @@ export class Movie {
     }, releaseDate: ${
       this._releaseDate ? this.releaseDate.toLocaleDateString() : "undefined"
     }, director: ${this._director.toString()}`;
-    return movieStr + `}`;
+    switch (this.category) {
+      case MovieCategoryEL["BIOGRAPHY"]:
+        return movieStr + `, biography about: ${this._about.toString()}`;
+      case MovieCategoryEL["TvSeriesEpisode"]:
+        return (
+          movieStr +
+          `, episode: ${this.episodeNo}, tv series: ${this.tvSeriesName}`
+        );
+      default:
+        return movieStr + `}`;
+    }
   }
 }
