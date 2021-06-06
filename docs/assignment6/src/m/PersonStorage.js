@@ -1,5 +1,5 @@
 import { cloneObject } from "../../lib/util.js";
-import { Person } from "./Person.js";
+import { Person, PersonTypeEL } from "./Person.js";
 
 /** key for the `localStorage[key]` for the `this.instances` */
 const PERSON_STORAGE_KEY = "person";
@@ -27,7 +27,7 @@ class _PersonStorage {
   /**
    * adds a new Person created from the given `slots` to the collection of `Person`s
    * if the slots fulfill their constraints. Does nothing otherwise
-   * @param {{personId: number, name: string}} slots - Object creation slots
+   * @param {{personId: number | string, name: string, categories: number[], agent: string | number}} slots - Object creation slots
    */
   add(slots) {
     let person = null;
@@ -39,17 +39,22 @@ class _PersonStorage {
     }
     if (person) {
       this._instances[person.personId] = person;
-      this.setNextId(person.personId + 1);
+      if (typeof person.personId === "string") {
+        this.setNextId(parseInt(person.personId) + 1);
+      } else {
+        this.setNextId(person.personId + 1);
+      }
       console.info(`${person.toString()} created`, person);
     }
   }
 
   /**
    * updates the `Person` with the corresponding `slots.personId` and overwrites it's `name`.
-   * @param {{personId: number, name: string}} slots - Object creation slots
+   * @param {{personId: number | string, name: string, categoriesToAdd: number[], categoriesToRemove: number[], agent: number | string}} slots - Object creation slots
    */
   update(slots) {
-    const { personId, name, agent } = slots;
+    const { personId, name, categoriesToAdd, categoriesToRemove, agent } =
+      slots;
     var noConstraintViolated = true;
     var updatedProperties = [];
     const person = this._instances[personId];
@@ -63,6 +68,12 @@ class _PersonStorage {
       }
       // update agent
       if (person.agent !== agent) {
+        if (person.agent) {
+          this._instances[person.agent].removeCategory(2);
+        }
+        if (agent) {
+          this._instances[agent].addCategory(2);
+        }
         person.agent = agent;
         updatedProperties.push("agent");
       }
@@ -113,6 +124,22 @@ class _PersonStorage {
       // call onDestroy to make sure the references can be deleted to
       // onDestroy(this._instances[personId]);
 
+      // remove the category of assozioated agent
+      if (this._instances[personId].agent) {
+        this._instances[this._instances[personId].agent].removeCategory(2);
+      }
+
+      // remove the agent mark at if exists
+      if (this._instances[personId].categories.includes(2)) {
+        const keys = Object.keys(this._instances);
+        for (const key of keys) {
+          const person = this._instances[key];
+          if (person.agent === personId) {
+            person.agent = null;
+          }
+        }
+      }
+
       // delete the Person
       console.info(`${this._instances[personId].toString()} deleted`);
       delete this._instances[personId];
@@ -148,7 +175,11 @@ class _PersonStorage {
         this._instances[key] = person;
 
         // store the current highest id (for receiving the next id later)
-        this.setNextId(Math.max(person.personId + 1, this._nextId));
+        if (typeof person.personId === "string") {
+          this.setNextId(Math.max(parseInt(person.personId) + 1, this._nextId));
+        } else {
+          this.setNextId(Math.max(person.personId + 1, this._nextId));
+        }
       }
     }
   }
@@ -190,7 +221,11 @@ class _PersonStorage {
     let currentId = -1;
     for (let key of Object.keys(this._instances)) {
       const person = this._instances[key];
-      currentId = Math.max(person.personId, currentId);
+      if (typeof person.personId === "string") {
+        currentId = Math.max(parseInt(person.personId), currentId);
+      } else {
+        currentId = Math.max(person.personId, currentId);
+      }
     }
     this.setNextId(currentId + 1);
   }
@@ -240,17 +275,54 @@ class _PersonStorage {
    */
   createTestData() {
     try {
-      this._instances[1] = new Person({ personId: 1, name: "Stephen Frears" });
-      this._instances[2] = new Person({ personId: 2, name: "George Lucas" });
+      this._instances[1] = new Person({
+        personId: 1,
+        name: "Stephen Frears",
+        categories: [0],
+        agent: null,
+      });
+      this._instances[2] = new Person({
+        personId: 2,
+        name: "George Lucas",
+        categories: [0],
+        agent: null,
+      });
       this._instances[3] = new Person({
         personId: 3,
         name: "Quentin Tarantino",
+        categories: [],
+        agent: null,
       });
-      this._instances[5] = new Person({ personId: 5, name: "Uma Thurman" });
-      this._instances[6] = new Person({ personId: 6, name: "John Travolta" });
-      this._instances[7] = new Person({ personId: 7, name: "Ewan McGregor" });
-      this._instances[8] = new Person({ personId: 8, name: "Natalie Portman" });
-      this._instances[9] = new Person({ personId: 9, name: "Keanu Reeves" });
+      this._instances[5] = new Person({
+        personId: 5,
+        name: "Uma Thurman",
+        categories: [0],
+        agent: null,
+      });
+      this._instances[6] = new Person({
+        personId: 6,
+        name: "John Travolta",
+        categories: [0],
+        agent: null,
+      });
+      this._instances[7] = new Person({
+        personId: 7,
+        name: "Ewan McGregor",
+        categories: [0],
+        agent: null,
+      });
+      this._instances[8] = new Person({
+        personId: 8,
+        name: "Natalie Portman",
+        categories: [0],
+        agent: null,
+      });
+      this._instances[9] = new Person({
+        personId: 9,
+        name: "Keanu Reeves",
+        categories: [0],
+        agent: null,
+      });
       this.setNextId(10);
       this.persist();
     } catch (e) {

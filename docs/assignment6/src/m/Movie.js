@@ -344,6 +344,7 @@ export class Movie {
       // add the new actor reference
       let key = String(actor_id);
       this._actors[key] = PersonStorage.instances[key];
+      PersonStorage.instances[key].addCategory(1);
     } else {
       throw validationResult;
     }
@@ -372,6 +373,7 @@ export class Movie {
     if (validationResult instanceof NoConstraintViolation) {
       // delete the actor reference
       delete this._actors[String(actor_id)];
+      PersonStorage.instances[actor_id].addCategory(1);
     } else {
       throw validationResult;
     }

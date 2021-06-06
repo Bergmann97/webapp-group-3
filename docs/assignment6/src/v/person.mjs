@@ -1,4 +1,4 @@
-import { Person } from "../m/Person.js";
+import { Person, PersonTypeEL } from "../m/Person.js";
 import { MovieStorage } from "../m/MovieStorage.js";
 import { PersonStorage } from "../m/PersonStorage.js";
 import { createListFromMap, fillSelectWithOptions } from "../../lib/util.js";
@@ -60,8 +60,25 @@ document.getElementById("retrieveAndListAll").addEventListener("click", () => {
     row.insertCell().textContent = person.personId.toString();
     row.insertCell().textContent = person.name;
 
-    // TODO: category
-    row.insertCell().textContent = "NYI";
+    // if (person.categories.length === 0) {
+    //   row.insertCell().textContent = "---";
+    // } else {
+    //   // row.insertCell().textContent = PersonTypeEL.stringify(person.categories);
+    //   row.insertCell().textContent = "da";
+    // }
+
+    var temp = person.categories;
+
+    const categoryList = createListFromMap(
+      person.categories,
+      null,
+      PersonTypeEL
+    );
+    if (categoryList.childElementCount > 0) {
+      row.insertCell().appendChild(categoryList);
+    } else {
+      row.insertCell().textContent = "no categories";
+    }
 
     if (person.agent) {
       row.insertCell().textContent = PersonStorage.instances[person.agent].name;
@@ -77,6 +94,14 @@ document.getElementById("retrieveAndListAll").addEventListener("click", () => {
 /** # FORM
  * @type {HTMLFormElement} */
 const createPersonForm = document.querySelector("section#Person-C > form");
+/** ### PERSON_ID ---------------------------------------------------
+ * @type {HTMLInputElement} */
+const createPersonIdInput = createPersonForm["personId"];
+/** ### NAME -------------------------------------------------
+ * @type {HTMLInputElement} */
+/** ### AGENT -------------------------------------------------
+ * @type {HTMLInputElement} */
+const createPersonNameInput = createPersonForm["personName"];
 document.getElementById("create").addEventListener("click", () => {
   document.getElementById("Person-M").style.display = "none";
   document.getElementById("Person-C").style.display = "block";
@@ -86,9 +111,7 @@ document.getElementById("create").addEventListener("click", () => {
     "name"
   );
 });
-/** ### PERSON_ID ---------------------------------------------------
- * @type {HTMLInputElement} */
-const createPersonIdInput = createPersonForm["personId"];
+
 createPersonIdInput.addEventListener("input", () => {
   createPersonIdInput.setCustomValidity(
     Person.checkPersonIdAsId(createPersonIdInput.value).message
@@ -96,22 +119,19 @@ createPersonIdInput.addEventListener("input", () => {
 });
 createPersonIdInput.value = PersonStorage.nextId().toString(); // initially the next free id
 
-/** ### NAME -------------------------------------------------
- * @type {HTMLInputElement} */
-const createPersonNameInput = createPersonForm["personName"];
 createPersonNameInput.addEventListener("input", () => {
   createPersonNameInput.setCustomValidity(
     Person.checkName(createPersonNameInput.value).message
   );
 });
 
-/** ### AGENT -------------------------------------------------
- * @type {HTMLInputElement} */
 const createPersonAgentSelect = createPersonForm["selectAgent"];
 createPersonAgentSelect.addEventListener("change", () => {
-  createPersonAgentSelect.setCustomValidity("input", () => {
-    Person.checkAgent(PersonStorage.instances[createPersonAgentSelect.value]);
-  });
+  createPersonAgentSelect.setCustomValidity(
+    Person.checkAgent(
+      PersonStorage.instances[createPersonAgentSelect.value].personId
+    ).message
+  );
 });
 
 /** ### SAVE_BUTTON -------------------------------------------------
@@ -122,6 +142,7 @@ createButton.addEventListener("click", () => {
   const slots = {
     personId: createPersonIdInput.value,
     name: createPersonNameInput.value,
+    categories: [],
     agent: createPersonAgentSelect.value,
   };
 
@@ -145,6 +166,20 @@ createButton.addEventListener("click", () => {
 /** # FORM
  * @type {HTMLFormElement} */
 const updatePersonForm = document.querySelector("section#Person-U > form");
+/** ### AGENT -------------------------------------------------------
+ * @type {HTMLSelectElement} */
+const updateAgentSelection = updatePersonForm["selectAgent"];
+/** ### PERSON_SELECTION ---------------------------------------------
+ * @type {HTMLSelectElement} */
+const updatePersonSelection = updatePersonForm["selectPerson"];
+/** ### PERSON_ID ----------------------------------------------------
+ * @type {HTMLOutputElement} */
+const updatePersonIdOutput = updatePersonForm["personId"];
+/** ### NAME -------------------------------------------------------
+ * @type {HTMLInputElement} */
+const updateNameInput = updatePersonForm["personName"];
+
+// FORM SETUP
 document.getElementById("update").addEventListener("click", () => {
   document.getElementById("Person-M").style.display = "none";
   document.getElementById("Person-U").style.display = "block";
@@ -153,9 +188,7 @@ document.getElementById("update").addEventListener("click", () => {
   updatePersonForm.reset();
 });
 
-/** ### PERSON_SELECTION ---------------------------------------------
- * @type {HTMLSelectElement} */
-const updatePersonSelection = updatePersonForm["selectPerson"];
+// HANDLE PERSON SELECTION
 updatePersonSelection.addEventListener("change", () => {
   const personId = updatePersonSelection.value;
 
@@ -163,7 +196,15 @@ updatePersonSelection.addEventListener("change", () => {
     const person = PersonStorage.instances[personId];
     updatePersonIdOutput.value = person.personId.toString();
     updateNameInput.value = person.name;
-    updateAgentSelection.value = person.agent;
+    var temp = updateAgentSelection.selectedOptions;
+    if (person.agent) {
+      const agentId = PersonStorage.instances[person.agent].personId;
+      if (typeof agentId === "string") {
+        updateAgentSelection.selectedIndex = parseInt(agentId);
+      } else {
+        updateAgentSelection.selectedIndex = agentId;
+      }
+    }
     updateButton.disabled = false;
   } else {
     updatePersonForm.reset();
@@ -171,13 +212,6 @@ updatePersonSelection.addEventListener("change", () => {
   }
 });
 
-/** ### PERSON_ID ----------------------------------------------------
- * @type {HTMLOutputElement} */
-const updatePersonIdOutput = updatePersonForm["personId"];
-
-/** ### NAME -------------------------------------------------------
- * @type {HTMLInputElement} */
-const updateNameInput = updatePersonForm["personName"];
 updateNameInput.addEventListener("input", () => {
   updateNameInput.setCustomValidity(
     Person.checkName(updateNameInput.value).message
@@ -187,9 +221,6 @@ updateNameInput.setCustomValidity(
   Person.checkName(updateNameInput.value).message
 );
 
-/** ### AGENT -------------------------------------------------------
- * @type {HTMLInputElement} */
-const updateAgentSelection = updatePersonForm["selectAgent"];
 updateAgentSelection.addEventListener("change", () => {
   updateAgentSelection.setCustomValidity(
     Person.checkAgent(updateAgentSelection.value).message
@@ -203,10 +234,11 @@ updateAgentSelection.setCustomValidity(
  * @type {HTMLButtonElement} */
 const updateButton = updatePersonForm["update"];
 updateButton.addEventListener("click", () => {
-  /** @type {import("../m/Person.js").PersonSlots} */
   const slots = {
     personId: updatePersonIdOutput.value,
     name: updateNameInput.value,
+    categoriesToAdd: [],
+    categoriesToRemove: [],
     agent: updateAgentSelection.value,
   };
 
@@ -248,7 +280,7 @@ deleteButton.addEventListener("click", () => {
   const personIdRef = deletePersonSelection.value;
   if (!personIdRef) return;
   if (confirm("Do you really want to delete this Person?")) {
-    PersonStorage.destroy(personIdRef);
+    PersonStorage.destroy(personIdRef, null);
     // remove deleted book from select options
     deletePersonForm.selectPerson.remove(
       deletePersonForm.selectPerson.selectedIndex

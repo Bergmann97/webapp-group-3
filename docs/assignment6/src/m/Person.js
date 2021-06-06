@@ -1,5 +1,6 @@
 import { Enumeration } from "../../lib/Enumeration.js";
 import {
+  ConstraintViolation,
   IntervalConstraintViolation,
   MandatoryValueConstraintViolation,
   NoConstraintViolation,
@@ -19,17 +20,17 @@ export const PersonTypeEL = new Enumeration(["Director", "Actor", "Agent"]);
 /**
  * The primitive slots of the movie.
  * @typedef {object} PersonSlots
- * @prop {number} personId
+ * @prop {number | string} personId
  * @prop {string} name
- * @prop {PersonTypeEL[]} category
- * @prop {Person} agent
+ * @prop {number[]} categories
+ * @prop {number | string} agent
  */
 
 export class Person {
   /** the unique identifier of the person
    * - unique required PositiveInteger {id}
    * @private
-   * @type {number}
+   * @type {number | string}
    */
   _personId;
   /** the name of the person
@@ -40,12 +41,12 @@ export class Person {
   _name;
   /** the kind of the person
    * @private
-   * @type {PersonTypeEL[]}
+   * @type {number[]}
    */
-  // _category;
+  _categories;
   /** the Person that is the agent of this person
    * @private
-   * @type {Person}
+   * @type {number | string} id as Ref to Person
    */
   _agent;
 
@@ -53,15 +54,15 @@ export class Person {
    * CONSTRUCTOR
    * @param {PersonSlots} slots - The Object creation slots
    */
-  constructor({ personId, name, category, agent }) {
+  constructor({ personId, name, categories, agent }) {
     if (arguments.length > 0) {
       this._personId = personId;
       this._name = name;
-      // if (category) {
-      //   this._category = category;
-      // } else {
-      //   this._category = [];
-      // }
+      if (categories) {
+        this._categories = categories;
+      } else {
+        this._categories = [];
+      }
       if (agent) {
         this._agent = agent;
       } else {
@@ -73,7 +74,7 @@ export class Person {
   // *** personId ***********************************************************
 
   /**
-   * @returns {number} the unique identifier of the person
+   * @returns {number | string} the unique identifier of the person
    */
   get personId() {
     return this._personId;
@@ -193,50 +194,91 @@ export class Person {
 
   // *** category *************************************************************
 
-  // /** @returns {PersonTypeEL} the category the person belongs to */
-  // get category() {
-  //   return this._category;
-  // }
+  /** @returns {number[]} the category the person belongs to */
+  get categories() {
+    return this._categories;
+  }
 
-  // /** @param {PersonTypeEL} personType - the new category to set */
-  // set category(personType) {
-  //   const validationResult = Person.checkCategory(personType);
-  //   if (validationResult instanceof NoConstraintViolation) {
-  //     this._category = personType;
-  //   } else {
-  //     throw validationResult;
-  //   }
-  // }
+  /** @param {number[]} categories - the new category to set */
+  set categories(categories) {
+    this._categories = [];
+    for (let cat in categories) {
+      this.addCategory(cat);
+    }
+  }
 
-  // /**
-  //  * checks if the given category is legit
-  //  * @param {string} category to check
-  //  * @returns a ConstraintViolation
-  //  * @public
-  //  */
-  // static checkCategory(category) {
-  //   if (category) {
-  //     if (isIntegerOrIntegerString(category)) {
-  //       if (parseInt(category) < 1 || parseInt(category) > PersonTypeEL.MAX) {
-  //         return new RangeConstraintViolation("Invalid value for category!");
-  //       }
-  //     } else {
-  //       return new RangeConstraintViolation("Invalid value for category!");
-  //     }
-  //     return new NoConstraintViolation();
-  //   } else {
-  //     return new NoConstraintViolation();
-  //   }
-  // }
+  /**
+   * check if category is legit and is already set
+   * @param {string | number} category to add to the category list
+   * @returns
+   */
+  addCategory(category) {
+    if (isIntegerOrIntegerString(category)) {
+      const cat = typeof category === "string" ? parseInt(category) : category;
+      const valRes = Person.checkCategory(cat);
+      if (valRes instanceof NoConstraintViolation) {
+        // set the agents person type as agent if not already set
+        if (!this._categories.includes(cat)) {
+          this._categories.push(cat);
+        }
+      }
+    } else {
+      return new RangeConstraintViolation("Invalid value for category!");
+    }
+  }
+
+  /**
+   * check if the category can be removed
+   * @param {number | string} category to remove from the existing ones
+   */
+  removeCategory(category) {
+    if (isIntegerOrIntegerString(category)) {
+      const cat = typeof category === "string" ? parseInt(category) : category;
+      const valRes = Person.checkCategory(cat);
+      if (valRes instanceof NoConstraintViolation) {
+        // check if category is set, to remove, elsewise do nothing
+        if (!this._categories.includes(PersonTypeEL[cat])) {
+          this._categories.splice(this._categories.indexOf(cat), 1);
+        }
+      } else {
+        throw valRes;
+      }
+    } else {
+      return new RangeConstraintViolation("Invalid value for category!");
+    }
+  }
+
+  /**
+   * checks if the given category is legit
+   * @param {number | string} category to check
+   * @returns a ConstraintViolation
+   * @public
+   */
+  static checkCategory(category) {
+    if (category) {
+      if (typeof category === "string") {
+        if (parseInt(category) < 1 || parseInt(category) > PersonTypeEL.MAX) {
+          return new RangeConstraintViolation("Invalid value for category!");
+        }
+      } else {
+        if (category < 1 || category > PersonTypeEL.MAX) {
+          return new RangeConstraintViolation("Invalid value for category!");
+        }
+      }
+      return new NoConstraintViolation();
+    } else {
+      return new NoConstraintViolation();
+    }
+  }
 
   // *** agent ****************************************************************
 
-  /** @returns {Person} the person that is agent of this person */
+  /** @returns {number | string} personId of the person that is agent of this person */
   get agent() {
     return this._agent;
   }
 
-  /** @param {Person} agent as person to set */
+  /** @param {number | string} agent as person to set as id as ref to person */
   set agent(agent) {
     const validationResult = Person.checkAgent(agent);
     if (validationResult instanceof NoConstraintViolation) {
@@ -273,7 +315,7 @@ export class Person {
       person = new Person({
         personId: slots.personId,
         name: slots.name,
-        category: slots.category,
+        categories: slots.categories,
         agent: slots.agent,
       });
     } catch (e) {
@@ -304,11 +346,19 @@ export class Person {
   /** @returns the stringified Person */
   toString() {
     var addString = "";
-    if (this._category) {
-      addString = addString + `, ${this.category} `;
+    if (this._categories) {
+      var catString = "categories: [";
+      for (let cat in this.categories) {
+        catString = catString + `, ${PersonTypeEL.labels[cat]}`;
+      }
+      catString = catString + "]";
+      if (catString !== "categories: []") {
+        addString = addString + catString;
+      }
     }
     if (this._agent) {
-      addString = addString + `, ${this.agent} `;
+      addString =
+        addString + `, agent: ${PersonStorage.instances[this.agent]._name} `;
     }
 
     return (

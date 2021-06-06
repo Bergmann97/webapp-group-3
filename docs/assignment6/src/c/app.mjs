@@ -6,14 +6,54 @@ import { PersonStorage } from "../m/PersonStorage.js";
  */
 function generateTestData() {
   try {
-    PersonStorage.add({ personId: 1, name: "Stephen Frears" });
-    PersonStorage.add({ personId: 2, name: "George Lucas" });
-    PersonStorage.add({ personId: 3, name: "Quentin Terrentino" });
-    PersonStorage.add({ personId: 4, name: "Uma Thurman" });
-    PersonStorage.add({ personId: 5, name: "John Travolta" });
-    PersonStorage.add({ personId: 6, name: "Ewan McGregor" });
-    PersonStorage.add({ personId: 7, name: "Natalie Portman" });
-    PersonStorage.add({ personId: 8, name: "Keanu Reeves" });
+    PersonStorage.add({
+      personId: 1,
+      name: "Stephen Frears",
+      categories: [],
+      agent: null,
+    });
+    PersonStorage.add({
+      personId: 2,
+      name: "George Lucas",
+      categories: [],
+      agent: null,
+    });
+    PersonStorage.add({
+      personId: 3,
+      name: "Quentin Terrentino",
+      categories: [],
+      agent: null,
+    });
+    PersonStorage.add({
+      personId: 4,
+      name: "Uma Thurman",
+      categories: [],
+      agent: null,
+    });
+    PersonStorage.add({
+      personId: 5,
+      name: "John Travolta",
+      categories: [],
+      agent: null,
+    });
+    PersonStorage.add({
+      personId: 6,
+      name: "Ewan McGregor",
+      categories: [],
+      agent: null,
+    });
+    PersonStorage.add({
+      personId: 7,
+      name: "Natalie Portman",
+      categories: [],
+      agent: null,
+    });
+    PersonStorage.add({
+      personId: 8,
+      name: "Keanu Reeves",
+      categories: [],
+      agent: null,
+    });
     PersonStorage.persist();
 
     MovieStorage.add({

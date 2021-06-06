@@ -4,6 +4,7 @@
  * @author Christian Prinz
  * @author Max Bergmann
  */
+import { Enumeration } from "./Enumeration.js";
 
 /**
  * Creates a typed "data clone" of an object
@@ -503,11 +504,12 @@ function fillMultipleChoiceWidgetWithOptions(
  *
  * @param {{[key: string] : object}} eTbl  An entity table
  * @param {string} displayProp  The object property to be displayed in the list
+ * @param {Enumeration} enumEl the enumeration that can be used instead of displayProp
  * @returns {HTMLUListElement}
  */
-export function createListFromMap(eTbl, displayProp) {
+export function createListFromMap(eTbl, displayProp, enumEl) {
   const listEl = document.createElement("ul");
-  fillListFromMap(listEl, eTbl, displayProp);
+  fillListFromMap(listEl, eTbl, displayProp, enumEl);
   return listEl;
 }
 
@@ -517,15 +519,21 @@ export function createListFromMap(eTbl, displayProp) {
  * @param {HTMLUListElement} listEl  A list element
  * @param {{[key: string] : object}} eTbl  An entity table
  * @param {string} displayProp  The object property to be displayed in the list
+ * @param {Enumeration} enumEl that should be used to print correct value
  */
-function fillListFromMap(listEl, eTbl, displayProp) {
+function fillListFromMap(listEl, eTbl, displayProp, enumEl) {
   const keys = Object.keys(eTbl);
   // delete old contents
   listEl.innerHTML = "";
   // create list items from object property values
   for (const key of keys) {
     const listItemEl = document.createElement("li");
-    listItemEl.textContent = eTbl[key][displayProp];
+    if (enumEl) {
+      listItemEl.textContent = enumEl.labels[eTbl[key]];
+    } else {
+      listItemEl.textContent = eTbl[key][displayProp];
+    }
+
     listEl.appendChild(listItemEl);
   }
 }

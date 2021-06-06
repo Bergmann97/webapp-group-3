@@ -2,6 +2,7 @@ import { FrozenValueConstraintViolation } from "../../lib/errorTypes.js";
 import { cloneObject, compareDates } from "../../lib/util.js";
 import { Movie } from "./Movie.js";
 import { Person } from "./Person.js";
+import { PersonStorage } from "./PersonStorage.js";
 
 /** key for the `localStorage[key]` for the `this.instances` */
 const MOVIES_STORAGE_KEY = "movies";
@@ -102,7 +103,9 @@ class MovieStorageClass {
           ? director !== movie.director.personId
           : director.personId
       ) {
+        movie.director.removeCategory(0);
         movie.director = director;
+        movie.director.addCategory(0);
         updatedProperties.push("director");
       }
 
@@ -195,6 +198,15 @@ class MovieStorageClass {
    */
   destroy(movieId) {
     if (this._instances[movieId]) {
+      // remove the related category of Person related to this movie
+      this._instances[movieId].director.removeCategory(0);
+      if (this._instances[movieId].actors) {
+        const actors = this._instances[movieId].actors;
+        for (let acts in actors) {
+          PersonStorage.instances[acts].removeCategory(1);
+        }
+      }
+
       console.info(`${this._instances[movieId].toString()} deleted`);
       delete this._instances[movieId];
       // calculate nextId when last id is destroyed
