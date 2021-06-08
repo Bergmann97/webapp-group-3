@@ -50,6 +50,7 @@ class _PersonStorage {
 
   /**
    * updates the `Person` with the corresponding `slots.personId` and overwrites it's `name`.
+   * TODO categories are not added explicitly | agent can be undefined though not mandatory
    * @param {{personId: number | string, name: string, categoriesToAdd: number[], categoriesToRemove: number[], agent: number | string}} slots - Object creation slots
    */
   update(slots) {
@@ -67,8 +68,10 @@ class _PersonStorage {
         updatedProperties.push("name");
       }
       // update agent
+      // TODO agent is not mandatory so you can "delete person.agent"
       if (person.agent !== agent) {
         if (person.agent) {
+          // TODO what if the person is an Agent for another Person
           this._instances[person.agent].removeCategory(2);
         }
         if (agent) {
@@ -125,11 +128,13 @@ class _PersonStorage {
       // onDestroy(this._instances[personId]);
 
       // remove the category of assozioated agent
+      // TODO what if the agent is an Agent for another Person
       if (this._instances[personId].agent) {
         this._instances[this._instances[personId].agent].removeCategory(2);
       }
 
       // remove the agent mark at if exists
+      // TODO why? If you delete the whole Person?
       if (this._instances[personId].categories.includes(2)) {
         const keys = Object.keys(this._instances);
         for (const key of keys) {
@@ -271,7 +276,7 @@ class _PersonStorage {
 
   /**
    * creates a set of 4 `Person`s and stores it in the first 4 slots of the `this.instances`
-   * - TODO: upgrade to always push new person (requires ID automation)
+   * TODO This function is a duplication (app.mjs) and can be deleted
    */
   createTestData() {
     try {

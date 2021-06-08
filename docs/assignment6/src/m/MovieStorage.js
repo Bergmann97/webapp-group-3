@@ -103,6 +103,7 @@ class MovieStorageClass {
           ? director !== movie.director.personId
           : director.personId
       ) {
+        // TODO what if the person is a director elsewhere?
         movie.director.removeCategory(0);
         movie.director = director;
         movie.director.addCategory(0);
@@ -199,6 +200,7 @@ class MovieStorageClass {
   destroy(movieId) {
     if (this._instances[movieId]) {
       // remove the related category of Person related to this movie
+      // TODO what if the Person is director / actor elsewhere?
       this._instances[movieId].director.removeCategory(0);
       if (this._instances[movieId].actors) {
         const actors = this._instances[movieId].actors;

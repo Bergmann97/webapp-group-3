@@ -373,6 +373,7 @@ export class Movie {
     if (validationResult instanceof NoConstraintViolation) {
       // delete the actor reference
       delete this._actors[String(actor_id)];
+      // TODO why add? and if remove, what if the person is actor elsewhere
       PersonStorage.instances[actor_id].addCategory(1);
     } else {
       throw validationResult;

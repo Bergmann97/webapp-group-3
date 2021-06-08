@@ -22,6 +22,7 @@ export const PersonTypeEL = new Enumeration(["Director", "Actor", "Agent"]);
  * @typedef {object} PersonSlots
  * @prop {number | string} personId
  * @prop {string} name
+ * TODO this will be added by loading movies!
  * @prop {number[]} categories
  * @prop {number | string} agent
  */
@@ -59,6 +60,7 @@ export class Person {
       this._personId = personId;
       this._name = name;
       if (categories) {
+        // TODO this will be added by loading movies
         this._categories = categories;
       } else {
         this._categories = [];
@@ -228,6 +230,13 @@ export class Person {
   }
 
   /**
+   * TODO this is obsolete. Categories will be "removed" implicitly while loading movies.
+   * This means if an actor / director / movie is removed (and so probably this category)
+   * then the corresponding category will not be set in the next Movie.retrieveAll()
+   *
+   * Reason: if you "check if the category can be removed" then you have to consequently
+   * iterate over all Movies and check if the Person is Director / Actor elsewhere
+   *
    * check if the category can be removed
    * @param {number | string} category to remove from the existing ones
    */
@@ -315,6 +324,7 @@ export class Person {
       person = new Person({
         personId: slots.personId,
         name: slots.name,
+        // TODO this will be added by loading movies
         categories: slots.categories,
         agent: slots.agent,
       });
