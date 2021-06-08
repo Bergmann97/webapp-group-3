@@ -39,7 +39,7 @@ export const MovieCategoryEL = new Enumeration([
  * @prop {Person | number | string} director
  * @prop {Person[] | number[] | string[] | {[key: string]: Person} } [actors]
  * @prop {number | string} [category]
- * @prop {Person} [about]
+ * @prop {Person | number | string} [about]
  * @prop {string} [tvSeriesName]
  * @prop {number | string} [episodeNo]
  */
@@ -450,7 +450,7 @@ export class Movie {
 
   /**
    * @param {number | string} about_id
-   * @param {number} movieCategory
+   * @param {number | string} movieCategory
    */
   static checkAbout(about_id, movieCategory) {
     const category = parseStringInteger(movieCategory);
@@ -493,17 +493,17 @@ export class Movie {
   /**
    * checks if the given tvSeriesName is present and not empty
    * @param {string} tvSeriesName
-   * @param {number} movieCategory
+   * @param {number | string} movieCategory
    * @public
    */
   static checkTvSeriesName(tvSeriesName, movieCategory) {
     const category = parseStringInteger(movieCategory);
-    if (category === MovieCategoryEL["TV_SERIES_EPISODE"] && !tvSeriesName) {
+    if (category === MovieCategoryEL["TVSERIESEPISODE"] && !tvSeriesName) {
       return new MandatoryValueConstraintViolation(
         "A TvSeriesEpisode must have a 'tvSeriesName' field!"
       );
     } else if (
-      category !== MovieCategoryEL["TV_SERIES_EPISODE"] &&
+      category !== MovieCategoryEL["TVSERIESEPISODE"] &&
       tvSeriesName
     ) {
       return new ConstraintViolation(
@@ -544,16 +544,16 @@ export class Movie {
   /**
    * checks if the given episodeNo is present and > 0
    * @param {number | string} episodeNo
-   * @param {number} movieCategory
+   * @param {number | string} movieCategory
    * @returns a ConstraintViolation
    */
   static checkEpisodeNo(episodeNo, movieCategory) {
     const category = parseStringInteger(movieCategory);
-    if (category === MovieCategoryEL["TV_SERIES_EPISODE"] && !episodeNo) {
+    if (category === MovieCategoryEL["TVSERIESEPISODE"] && !episodeNo) {
       return new MandatoryValueConstraintViolation(
         "A TvSeriesEpisode must have a 'episodeNo' field!"
       );
-    } else if (category !== MovieCategoryEL["TV_SERIES_EPISODE"] && episodeNo) {
+    } else if (category !== MovieCategoryEL["TVSERIESEPISODE"] && episodeNo) {
       return new ConstraintViolation(
         "An 'episodeNo' field value must not " +
           "be provided if the movie is not a TvSeriesEpisode!"

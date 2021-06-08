@@ -3,9 +3,10 @@ import {
   createMultipleChoiceWidget,
   fillSelectWithOptions,
 } from "../../lib/util.js";
-import { Movie } from "../m/Movie.js";
+import { Movie, MovieCategoryEL } from "../m/Movie.js";
 import { MovieStorage } from "../m/MovieStorage.js";
 import { PersonStorage } from "../m/PersonStorage.js";
+import { displaySegmentFields, undisplayAllSegmentFields } from "../c/app.js";
 
 /******************************************************************************
  *** MOVIE UI *****************************************************************
@@ -45,6 +46,28 @@ function refreshManageDataUI() {
   document.getElementById("Movie-D").style.display = "none";
 }
 
+/**
+ * event handler for book category selection events
+ * used both in create and update
+ *
+ * @param {Event} e
+ */
+function handleCategorySelectChangeEvent(e) {
+  /** @ts-ignore @type {HTMLFormElement} */
+  const formEl = e.currentTarget.form;
+  /** @type {string} the array index of MovieCategoryEL.labels */
+  const categoryIndexStr = formEl.selectCategory.value;
+  if (categoryIndexStr) {
+    displaySegmentFields(
+      formEl,
+      MovieCategoryEL.labels,
+      parseInt(categoryIndexStr)
+    );
+  } else {
+    undisplayAllSegmentFields(formEl, MovieCategoryEL.labels);
+  }
+}
+
 // Set up Manage Book UI
 refreshManageDataUI();
 
@@ -82,6 +105,16 @@ document.getElementById("retrieveAndListAll").addEventListener("click", () => {
     } else {
       row.insertCell().textContent = "no actors";
     }
+    if (movie.category) {
+      switch (movie.category) {
+        case MovieCategoryEL["BIOGRAPHY"]:
+          row.insertCell().textContent = `Biography about ${movie.about.name}`;
+          break;
+        case MovieCategoryEL["TVSERIESEPISODE"]:
+          row.insertCell().textContent = `Episode ${movie.episodeNo} of TV series "${movie.tvSeriesName}"`;
+          break;
+      }
+    }
   }
 });
 
@@ -96,12 +129,15 @@ document.getElementById("create").addEventListener("click", () => {
   document.getElementById("Movie-M").style.display = "none";
   document.getElementById("Movie-C").style.display = "block";
 
+  undisplayAllSegmentFields(createMovieForm, MovieCategoryEL.labels);
+
   fillSelectWithOptions(
     createDirectorSelection,
     PersonStorage.instances,
     "name"
   );
   fillSelectWithOptions(createActorsSelection, PersonStorage.instances, "name");
+  fillSelectWithOptions(createAboutSelection, PersonStorage.instances, "name");
 });
 
 /** ### MOVIE_ID ----------------------------------------------------
@@ -145,6 +181,27 @@ createDirectorSelection.addEventListener("change", () => {
  * @type {HTMLSelectElement} */
 const createActorsSelection = createMovieForm["selectActors"];
 
+/** ### CATEGORY ----------------------------------------------------
+ * @type {HTMLSelectElement} */
+const createCategorySelection = createMovieForm["selectCategory"];
+fillSelectWithOptions(createCategorySelection, MovieCategoryEL.labels);
+createCategorySelection.addEventListener(
+  "change",
+  handleCategorySelectChangeEvent
+);
+
+/** ### ABOUT -------------------------------------------------------
+ * @type {HTMLSelectElement} */
+const createAboutSelection = createMovieForm["selectAbout"];
+
+/** ### TV_SERIES_NAME ----------------------------------------------
+ * @type {HTMLInputElement} */
+const createTvSeriesNameInput = createMovieForm["tvSeriesName"];
+
+/** ### EPISODE_NO ----------------------------------------------------
+ * @type {HTMLInputElement} */
+const createEpisodeNoInput = createMovieForm["episodeNo"];
+
 /** ### SAVE_BUTTON -------------------------------------------------
  * @type {HTMLButtonElement} */
 const createButton = createMovieForm["create"];
@@ -172,6 +229,32 @@ createButton.addEventListener("click", () => {
     Movie.checkDirector(createDirectorSelection.value).message
   );
 
+  // category
+  if (createCategorySelection.value) {
+    slots.category = parseInt(createCategorySelection.value);
+    switch (slots.category) {
+      case MovieCategoryEL["BIOGRAPHY"]:
+        slots.about = createAboutSelection.value;
+        createAboutSelection.setCustomValidity(
+          Movie.checkAbout(createAboutSelection.value, slots.category).message
+        );
+        break;
+      case MovieCategoryEL["TVSERIESEPISODE"]:
+        slots.episodeNo = createEpisodeNoInput.value;
+        slots.tvSeriesName = createTvSeriesNameInput.value;
+        createEpisodeNoInput.setCustomValidity(
+          Movie.checkEpisodeNo(createEpisodeNoInput.value, slots.category)
+            .message
+        );
+        createTvSeriesNameInput.setCustomValidity(
+          Movie.checkTvSeriesName(createTvSeriesNameInput.value, slots.category)
+            .message
+        );
+        break;
+    }
+  }
+
+  // actors + creation
   const selActOptions = createActorsSelection.selectedOptions;
 
   // save the input data only if all form fields are valid
@@ -192,6 +275,7 @@ createButton.addEventListener("click", () => {
 /** # FORM
  * @type {HTMLFormElement} */
 const updateMovieForm = document.querySelector("section#Movie-U > form");
+undisplayAllSegmentFields(updateMovieForm, MovieCategoryEL.labels);
 document.getElementById("update").addEventListener("click", () => {
   document.getElementById("Movie-M").style.display = "none";
   document.getElementById("Movie-U").style.display = "block";
@@ -229,7 +313,43 @@ updateMovieSelection.addEventListener("change", () => {
       1
     );
 
+    fillSelectWithOptions(
+      updateAboutSelection,
+      PersonStorage.instances,
+      "name"
+    );
+
     updateDirectorSelection.selectedIndex = movie.director.personId;
+
+    if (movie.category) {
+      updateCategorySelection.selectedIndex = movie.category;
+      updateCategorySelection.disabled = true;
+      displaySegmentFields(
+        updateMovieForm,
+        MovieCategoryEL.labels,
+        movie.category
+      );
+
+      switch (movie.category) {
+        case MovieCategoryEL["BIOGRAPHY"]:
+          updateAboutSelection.selectedIndex = movie.about.personId;
+          updateTvSeriesNameInput.value = "";
+          updateEpisodeNoInput.value = "";
+          break;
+        case MovieCategoryEL["TVSERIESEPISODE"]:
+          updateAboutSelection.selectedIndex = 0;
+          updateTvSeriesNameInput.value = movie.tvSeriesName;
+          updateEpisodeNoInput.value = movie.episodeNo.toString();
+          break;
+      }
+    } else {
+      updateCategorySelection.selectedIndex = 0;
+      updateCategorySelection.disabled = false;
+      updateAboutSelection.selectedIndex = 0;
+      updateTvSeriesNameInput.value = "";
+      updateEpisodeNoInput.value = "";
+      undisplayAllSegmentFields(updateMovieForm, MovieCategoryEL.labels);
+    }
 
     updateButton.disabled = false;
   } else {
@@ -271,9 +391,53 @@ updateDirectorSelection.addEventListener("change", () => {
 
 /** ### ACTORS ------------------------------------------------------
  * @type {HTMLSelectElement} */
-const updateActorsSelection = updateMovieForm.querySelector(
-  ".MultiChoiceWidget"
+const updateActorsSelection =
+  updateMovieForm.querySelector(".MultiChoiceWidget");
+
+/** ### CATEGORY ----------------------------------------------------
+ * @type {HTMLSelectElement} */
+const updateCategorySelection = updateMovieForm["selectCategory"];
+fillSelectWithOptions(updateCategorySelection, MovieCategoryEL.labels);
+updateCategorySelection.addEventListener(
+  "change",
+  handleCategorySelectChangeEvent
 );
+
+/** ### ABOUT -------------------------------------------------------
+ * @type {HTMLSelectElement} */
+const updateAboutSelection = updateMovieForm["selectAbout"];
+updateAboutSelection.addEventListener("input", function () {
+  updateAboutSelection.setCustomValidity(
+    Movie.checkAbout(
+      updateAboutSelection.value,
+      parseInt(updateCategorySelection.value)
+    ).message
+  );
+});
+
+/** ### TV_SERIES_NAME ----------------------------------------------
+ * @type {HTMLInputElement} */
+const updateTvSeriesNameInput = updateMovieForm["tvSeriesName"];
+updateTvSeriesNameInput.addEventListener("input", function () {
+  updateTvSeriesNameInput.setCustomValidity(
+    Movie.checkTvSeriesName(
+      updateTvSeriesNameInput.value,
+      parseInt(updateCategorySelection.value)
+    ).message
+  );
+});
+
+/** ### EPISODE_NO ----------------------------------------------------
+ * @type {HTMLInputElement} */
+const updateEpisodeNoInput = updateMovieForm["episodeNo"];
+updateEpisodeNoInput.addEventListener("input", function () {
+  updateEpisodeNoInput.setCustomValidity(
+    Movie.checkEpisodeNo(
+      updateEpisodeNoInput.value,
+      parseInt(updateCategorySelection.value)
+    ).message
+  );
+});
 
 /** ### SAVE_BUTTON -------------------------------------------------
  * @type {HTMLButtonElement} */
@@ -300,6 +464,31 @@ updateButton.addEventListener("click", () => {
   updateDirectorSelection.setCustomValidity(
     Movie.checkDirector(updateDirectorSelection.value).message
   );
+
+  // category
+  if (updateCategorySelection.value) {
+    slots.category = parseInt(updateCategorySelection.value);
+    switch (slots.category) {
+      case MovieCategoryEL["BIOGRAPHY"]:
+        slots.about = updateAboutSelection.value;
+        updateAboutSelection.setCustomValidity(
+          Movie.checkAbout(updateAboutSelection.value, slots.category).message
+        );
+        break;
+      case MovieCategoryEL["TVSERIESEPISODE"]:
+        slots.episodeNo = updateEpisodeNoInput.value;
+        slots.tvSeriesName = updateTvSeriesNameInput.value;
+        updateEpisodeNoInput.setCustomValidity(
+          Movie.checkEpisodeNo(updateEpisodeNoInput.value, slots.category)
+            .message
+        );
+        updateTvSeriesNameInput.setCustomValidity(
+          Movie.checkTvSeriesName(updateTvSeriesNameInput.value, slots.category)
+            .message
+        );
+        break;
+    }
+  }
 
   // save the input data only if all form fields are valid
   if (updateMovieForm.checkValidity()) {

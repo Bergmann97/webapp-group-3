@@ -15,7 +15,7 @@ const MOVIES_STORAGE_KEY = "movies";
  * @prop {Person[] | number[] | string[] | {[key: string]: Person}} [actorsToAdd]
  * @prop {Person[] | number[] | string[] | {[key: string]: Person}} [actorsToRemove]
  * @prop {number | string} [category]
- * @prop {Person} [about]
+ * @prop {Person |number | string} [about]
  * @prop {string} [tvSeriesName]
  * @prop {number | string} [episodeNo]
  */

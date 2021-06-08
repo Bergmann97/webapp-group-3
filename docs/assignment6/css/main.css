@@ -205,6 +205,7 @@ form > div.field-group > label {
 form > div > label > input[type="text"],
   form > div > label > textarea,
   form > div > label > input[type="checkbox"],
+  form > div > label > input[type="date"],
   form > div > label > select,
   form > div > label > div.MultiChoiceWidget,
   form > div > label > output {

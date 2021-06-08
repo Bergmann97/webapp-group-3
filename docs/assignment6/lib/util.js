@@ -116,11 +116,11 @@ export function isIntegerOrIntegerString(x) {
 /**
  * receives a number and immediately returns it, if it is `typeof "number"`,
  * or parses it with `Number(...)` otherwise.
- * @param {number | string} s the string OR number to parse
+ * @param {number | string} value the string OR number to parse
  * @returns {number} the parsed number
  */
-export function parseStringInteger(s) {
-  return typeof s === "number" ? s : Number(s);
+export function parseStringInteger(value) {
+  return typeof value === "number" ? value : Number(value);
 }
 
 /**
@@ -504,7 +504,7 @@ function fillMultipleChoiceWidgetWithOptions(
  *
  * @param {{[key: string] : object}} eTbl  An entity table
  * @param {string} displayProp  The object property to be displayed in the list
- * @param {Enumeration} enumEl the enumeration that can be used instead of displayProp
+ * @param {Enumeration} [enumEl] the enumeration that can be used instead of displayProp
  * @returns {HTMLUListElement}
  */
 export function createListFromMap(eTbl, displayProp, enumEl) {
@@ -519,7 +519,7 @@ export function createListFromMap(eTbl, displayProp, enumEl) {
  * @param {HTMLUListElement} listEl  A list element
  * @param {{[key: string] : object}} eTbl  An entity table
  * @param {string} displayProp  The object property to be displayed in the list
- * @param {Enumeration} enumEl that should be used to print correct value
+ * @param {Enumeration} [enumEl] that should be used to print correct value
  */
 function fillListFromMap(listEl, eTbl, displayProp, enumEl) {
   const keys = Object.keys(eTbl);

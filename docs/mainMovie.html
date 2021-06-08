@@ -42,6 +42,7 @@
         <!-- ============================================================== -->
         <section id="Movie-M" class="UI-Page">
           <!-- ============================================================== -->
+          <h2>Manage Movie Data</h2>
           <p>This app supports the following movie managing options:</p>
           <div class="two-col-menu">
             <ul class="menu">
@@ -65,7 +66,7 @@
         <!-- ============================================================== -->
         <section id="Movie-R" class="UI-Page">
           <!-- ============================================================== -->
-          <h1>Retrieve and list all movie records</h1>
+          <h2>Retrieve and list all movie records</h2>
           <table>
             <thead>
               <tr>
@@ -74,6 +75,7 @@
                 <th id="releaseDate">ReleaseDate</th>
                 <th id="director">Director</th>
                 <th id="actors">Actors</th>
+                <th id="category">Category</th>
               </tr>
             </thead>
             <tbody></tbody>
@@ -87,7 +89,7 @@
         <!-- ============================================================== -->
         <section id="Movie-C" class="UI-Page">
           <!-- ============================================================== -->
-          <h1>Create a new movie record</h1>
+          <h2>Create a new movie record</h2>
           <form>
             <div class="field">
               <label>ID: <input type="number" name="movieId" min="1" /></label>
@@ -97,7 +99,37 @@
             </div>
             <div class="field">
               <label
-                >Release Date: <input type="date" name="releaseDate"
+                >Release date:           
+                <!-- pattern is the fallback validation for the missing date input 
+                in safari (which uses the text type ) -->
+                <input
+                  name="releaseDate"
+                  type="date"
+                  min="1895-12-28"
+                  pattern="\d{4}-\d{2}-\d{2}"
+                />
+              </label>
+            </div>
+            <div class="field">
+              <label
+                >Category:
+                <select name="selectCategory"></select
+              ></label>
+            </div>
+            <div class="field Biography">
+              <!-- conditional field -->
+              <label
+                >About:
+                <select name="selectAbout"></select
+              ></label>
+            </div>
+            <div class="field TvSeriesEpisode">
+              <!-- conditional field -->
+              <label
+                >TV series name: <input type="text" name="tvSeriesName"
+              /></label>
+              <label
+                >Episode no.: <input type="number" name="episodeNo" min="0"
               /></label>
             </div>
             <div class="select-one">
@@ -109,7 +141,7 @@
             <div class="select-many">
               <label
                 >Actors:
-                <select name="selectActors" multiple="actors"></select>
+                <select name="selectActors" multiple></select>
               </label>
             </div>
             <div class="button-group">
@@ -123,11 +155,11 @@
         <!-- ============================================================== -->
         <section id="Movie-U" class="UI-Page">
           <!-- ============================================================== -->
-          <h1>Update a movie record</h1>
+          <h2>Update a movie record</h2>
           <form autocomplete="off">
             <div class="select-one">
               <label
-                >Select movie:
+                >Select movie:  
                 <select name="selectMovie"></select
               ></label>
             </div>
@@ -142,7 +174,37 @@
             </div>
             <div class="field">
               <label
-                >Release Date: <input type="date" name="releaseDate"
+                >Release date:           
+                <!-- pattern is the fallback validation for the missing date input 
+                in safari (which uses the text type ) -->
+                <input
+                  name="releaseDate"
+                  type="date"
+                  min="1895-12-28"
+                  pattern="\d{4}-\d{2}-\d{2}"
+                />
+              </label>
+            </div>
+            <div class="field">
+              <label
+                >Category:
+                <select name="selectCategory"></select
+              ></label>
+            </div>
+            <div class="field Biography">
+              <!-- conditional field -->
+              <label
+                >About:
+                <select name="selectAbout"></select
+              ></label>
+            </div>
+            <div class="field TvSeriesEpisode">
+              <!-- conditional field -->
+              <label
+                >TV series name: <input type="text" name="tvSeriesName"
+              /></label>
+              <label
+                >Episode no.: <input type="number" name="episodeNo" min="0"
               /></label>
             </div>
             <div class="select-one">
@@ -152,8 +214,8 @@
               ></label>
             </div>
             <div class="widget">
-              <label for="updMovieSelectActors">Actors:</label>
-              <div id="updMovieSelectActors" class="MultiChoiceWidget"></div>
+              <label>Actors:</label>
+              <div class="MultiChoiceWidget"></div>
             </div>
             <div class="button-group">
               <button type="submit" name="update" disabled="disabled">
@@ -168,7 +230,7 @@
         <!-- ============================================================== -->
         <section id="Movie-D" class="UI-Page">
           <!-- ============================================================== -->
-          <h1>Delete a movie record</h1>
+          <h2>Delete a movie record</h2>
           <form>
             <div class="select-one">
               <label

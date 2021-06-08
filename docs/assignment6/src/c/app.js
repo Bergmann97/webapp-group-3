@@ -138,7 +138,7 @@ export function generateTestData() {
       releaseDate: "2019-06-30",
       director: 1,
       actors: [9, 10, 11],
-      category: MovieCategoryEL["TV_SERIES_EPISODE"],
+      category: MovieCategoryEL["TVSERIESEPISODE"],
       episodeNo: 6,
       tvSeriesName: "The Loudest Voice",
     });
