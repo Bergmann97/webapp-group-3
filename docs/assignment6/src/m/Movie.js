@@ -20,7 +20,7 @@ import {
   parseStringInteger,
 } from "../../lib/util.js";
 import { MovieStorage } from "./MovieStorage.js";
-import { Person } from "./Person.js";
+import { Person, PersonTypeEL } from "./Person.js";
 import { PersonStorage } from "./PersonStorage.js";
 
 // *** ENUMERATIONS ***********************************************************
@@ -88,21 +88,21 @@ export class Movie {
   /** the (optional) category of this
    * - optional Enumeration
    * @private
-   * @type {number}
+   * @type {number | undefined}
    */
   _category;
 
   /** the `Person` the `Biography`is about
    * - depended required Person
    * @private
-   * @type {Person}
+   * @type {Person | undefined}
    */
   _about;
 
   /** the official title of the TV series this episode is from
    * - depended required NonEmptyString
    * @private
-   * @type {string}
+   * @type {string | undefined}
    */
   _tvSeriesName;
 
@@ -110,7 +110,7 @@ export class Movie {
    * - depended required PositiveInteger
    *
    * @private
-   * @type {number}
+   * @type {number | undefined}
    */
   _episodeNo;
 
@@ -135,10 +135,10 @@ export class Movie {
       this.releaseDate = releaseDate;
       this.director = director;
       this.actors = actors ?? [];
-      this.category = category;
-      this.about = about;
-      this.tvSeriesName = tvSeriesName;
-      this.episodeNo = episodeNo;
+      if (category) this.category = category;
+      if (about) this.about = about;
+      if (tvSeriesName) this.tvSeriesName = tvSeriesName;
+      if (episodeNo) this.episodeNo = episodeNo;
     }
   }
 
@@ -291,6 +291,9 @@ export class Movie {
     if (validationResult instanceof NoConstraintViolation) {
       // create the new director reference
       this._director = PersonStorage.instances[director_id];
+      PersonStorage.instances[director_id].addCategory(
+        PersonTypeEL["DIRECTOR"]
+      );
     } else {
       throw validationResult;
     }
@@ -344,7 +347,7 @@ export class Movie {
       // add the new actor reference
       let key = String(actor_id);
       this._actors[key] = PersonStorage.instances[key];
-      PersonStorage.instances[key].addCategory(1);
+      PersonStorage.instances[key].addCategory(PersonTypeEL["ACTOR"]);
     } else {
       throw validationResult;
     }
@@ -373,8 +376,6 @@ export class Movie {
     if (validationResult instanceof NoConstraintViolation) {
       // delete the actor reference
       delete this._actors[String(actor_id)];
-      // TODO why add? and if remove, what if the person is actor elsewhere
-      PersonStorage.instances[actor_id].addCategory(1);
     } else {
       throw validationResult;
     }
@@ -383,7 +384,7 @@ export class Movie {
   // *** category *************************************************************
 
   /**
-   * @returns {number} the (enum) number of the movie's category.
+   * @returns {number | undefined} the (enum) number of the movie's category.
    * Use with `MovieCategoryEL[category]`.
    */
   get category() {
@@ -430,7 +431,7 @@ export class Movie {
 
   // *** about ****************************************************************
 
-  /** @returns {Person} the `Person` this biography is about */
+  /** @returns {Person | undefined} the `Person` this biography is about */
   get about() {
     return this._about;
   }
@@ -471,7 +472,7 @@ export class Movie {
 
   // *** tvSeriesName *********************************************************
 
-  /** @returns {string} the official title of the TV series this episode is from */
+  /** @returns {string | undefined} the official title of the TV series this episode is from */
   get tvSeriesName() {
     return this._tvSeriesName;
   }
@@ -497,12 +498,12 @@ export class Movie {
    */
   static checkTvSeriesName(tvSeriesName, movieCategory) {
     const category = parseStringInteger(movieCategory);
-    if (category === MovieCategoryEL["TvSeriesEpisode"] && !tvSeriesName) {
+    if (category === MovieCategoryEL["TV_SERIES_EPISODE"] && !tvSeriesName) {
       return new MandatoryValueConstraintViolation(
         "A TvSeriesEpisode must have a 'tvSeriesName' field!"
       );
     } else if (
-      category !== MovieCategoryEL["TvSeriesEpisode"] &&
+      category !== MovieCategoryEL["TV_SERIES_EPISODE"] &&
       tvSeriesName
     ) {
       return new ConstraintViolation(
@@ -521,7 +522,7 @@ export class Movie {
   // *** episodeNo ************************************************************
 
   /**
-   * @returns {number} the number of the episode
+   * @returns {number | undefined} the number of the episode
    */
   get episodeNo() {
     return this._episodeNo;
@@ -548,11 +549,11 @@ export class Movie {
    */
   static checkEpisodeNo(episodeNo, movieCategory) {
     const category = parseStringInteger(movieCategory);
-    if (category === MovieCategoryEL["TvSeriesEpisode"] && !episodeNo) {
+    if (category === MovieCategoryEL["TV_SERIES_EPISODE"] && !episodeNo) {
       return new MandatoryValueConstraintViolation(
         "A TvSeriesEpisode must have a 'episodeNo' field!"
       );
-    } else if (category !== MovieCategoryEL["TvSeriesEpisode"] && episodeNo) {
+    } else if (category !== MovieCategoryEL["TV_SERIES_EPISODE"] && episodeNo) {
       return new ConstraintViolation(
         "An 'episodeNo' field value must not " +
           "be provided if the movie is not a TvSeriesEpisode!"
@@ -580,13 +581,7 @@ export class Movie {
   static deserialize(slots) {
     let movie = null;
     try {
-      movie = new Movie({
-        movieId: slots.movieId,
-        title: slots.title,
-        releaseDate: slots.releaseDate,
-        director: slots.director,
-        actors: slots.actors,
-      });
+      movie = new Movie(slots);
     } catch (e) {
       console.warn(
         `${e.constructor.name} while deserializing a movie: ${e.message}`

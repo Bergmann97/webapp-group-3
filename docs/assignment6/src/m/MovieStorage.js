@@ -1,7 +1,7 @@
 import { FrozenValueConstraintViolation } from "../../lib/errorTypes.js";
 import { cloneObject, compareDates } from "../../lib/util.js";
 import { Movie } from "./Movie.js";
-import { Person } from "./Person.js";
+import { Person, PersonTypeEL } from "./Person.js";
 import { PersonStorage } from "./PersonStorage.js";
 
 /** key for the `localStorage[key]` for the `this.instances` */
@@ -66,19 +66,18 @@ class MovieStorageClass {
    * and/or `releaseDate` if they are defined and different
    * @param {{movieId: number | string} & MovieUpdateSlots} slots - Object creation slots
    */
-  update(slots) {
-    const {
-      movieId,
-      title,
-      releaseDate,
-      director,
-      actorsToAdd,
-      actorsToRemove,
-      category,
-      about,
-      episodeNo,
-      tvSeriesName,
-    } = slots;
+  update({
+    movieId,
+    title,
+    releaseDate,
+    director,
+    actorsToAdd,
+    actorsToRemove,
+    category,
+    about,
+    episodeNo,
+    tvSeriesName,
+  }) {
     let noConstraintViolated = true;
     let updatedProperties = [];
     const movie = this._instances[movieId];
@@ -103,10 +102,7 @@ class MovieStorageClass {
           ? director !== movie.director.personId
           : director.personId
       ) {
-        // TODO what if the person is a director elsewhere?
-        movie.director.removeCategory(0);
         movie.director = director;
-        movie.director.addCategory(0);
         updatedProperties.push("director");
       }
 
@@ -199,16 +195,6 @@ class MovieStorageClass {
    */
   destroy(movieId) {
     if (this._instances[movieId]) {
-      // remove the related category of Person related to this movie
-      // TODO what if the Person is director / actor elsewhere?
-      this._instances[movieId].director.removeCategory(0);
-      if (this._instances[movieId].actors) {
-        const actors = this._instances[movieId].actors;
-        for (let acts in actors) {
-          PersonStorage.instances[acts].removeCategory(1);
-        }
-      }
-
       console.info(`${this._instances[movieId].toString()} deleted`);
       delete this._instances[movieId];
       // calculate nextId when last id is destroyed
