@@ -1,3 +1,4 @@
+import { MovieCategoryEL } from "../m/Movie.js";
 import { MovieStorage } from "../m/MovieStorage.js";
 import { PersonStorage } from "../m/PersonStorage.js";
 
@@ -9,85 +10,85 @@ export function generateTestData() {
     PersonStorage.add({
       personId: 1,
       name: "Stephen Frears",
-      categories: [1],
+      categories: [],
       agent: null,
     });
     PersonStorage.add({
       personId: 2,
       name: "George Lucas",
-      categories: [1],
+      categories: [],
       agent: null,
     });
     PersonStorage.add({
       personId: 3,
       name: "Quentin Terrentino",
-      categories: [1, 2],
+      categories: [],
       agent: null,
     });
     PersonStorage.add({
       personId: 4,
       name: "Uma Thurman",
-      categories: [2],
-      agent: 17,
+      categories: [],
+      agent: 16,
     });
     PersonStorage.add({
       personId: 5,
       name: "John Travolta",
-      categories: [2],
+      categories: [],
       agent: null,
     });
     PersonStorage.add({
       personId: 6,
       name: "Ewan McGregor",
-      categories: [2],
+      categories: [],
       agent: null,
     });
     PersonStorage.add({
       personId: 7,
       name: "Natalie Portman",
-      categories: [2],
+      categories: [],
       agent: null,
     });
     PersonStorage.add({
       personId: 8,
       name: "Keanu Reeves",
-      categories: [2],
-      agent: 18,
+      categories: [],
+      agent: 17,
     });
     PersonStorage.add({
       personId: 9,
       name: "Russell Crowe",
-      categories: [1, 2],
-      agent: 18,
+      categories: [],
+      agent: 17,
     });
     PersonStorage.add({
       personId: 10,
       name: "Seth MacFarlane",
-      categories: [2],
+      categories: [],
       agent: null,
     });
     PersonStorage.add({
       personId: 11,
       name: "Naomi Watts",
-      categories: [2],
+      categories: [],
       agent: null,
     });
     PersonStorage.add({
       personId: 12,
       name: "Daniel Minahan",
-      categories: [1],
+      categories: [],
       agent: null,
     });
     PersonStorage.add({
       personId: 13,
       name: "Ed Harris",
-      categories: [2],
-      agent: 17,
+      categories: [],
+      agent: 16,
     });
     PersonStorage.add({
       personId: 14,
       name: "Marc Forster",
-      categories: [1],
+      categories: [],
       agent: null,
     });
     PersonStorage.add({
@@ -115,7 +116,7 @@ export function generateTestData() {
       title: "Pulp Fiction",
       releaseDate: "1994-05-12",
       director: 3,
-      actors: [4, 5],
+      actors: [3, 4, 5],
     });
     MovieStorage.add({
       movieId: 2,
@@ -130,6 +131,32 @@ export function generateTestData() {
       releaseDate: "1988-12-16",
       director: 1,
       actors: [4, 8],
+    });
+    MovieStorage.add({
+      movieId: 4,
+      title: "2015",
+      releaseDate: "2019-06-30",
+      director: 1,
+      actors: [9, 10, 11],
+      category: MovieCategoryEL["TV_SERIES_EPISODE"],
+      episodeNo: 6,
+      tvSeriesName: "The Loudest Voice",
+    });
+    MovieStorage.add({
+      movieId: 5,
+      title: "A Beautiful Mind",
+      releaseDate: "2001-12-21",
+      director: 9,
+      actors: [9, 13],
+      category: MovieCategoryEL["BIOGRAPHY"],
+      about: 15,
+    });
+    MovieStorage.add({
+      movieId: 6,
+      title: "Stay",
+      releaseDate: "2005-09-24",
+      director: 14,
+      actors: [6, 11],
     });
     MovieStorage.persist();
   } catch (e) {
