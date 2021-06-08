@@ -31,7 +31,7 @@ export class Person {
   /** the unique identifier of the person
    * - unique required PositiveInteger {id}
    * @private
-   * @type {number | string}
+   * @type {number}
    */
   _personId;
   /** the name of the person
@@ -57,18 +57,18 @@ export class Person {
    */
   constructor({ personId, name, categories, agent }) {
     if (arguments.length > 0) {
-      this._personId = personId;
-      this._name = name;
+      this.personId = personId;
+      this.name = name;
       if (categories) {
         // TODO this will be added by loading movies
-        this._categories = categories;
+        this.categories = categories;
       } else {
-        this._categories = [];
+        this.categories = [];
       }
       if (agent) {
-        this._agent = agent;
+        this.agent = agent;
       } else {
-        this._agent = null;
+        this.agent = null;
       }
     }
   }
@@ -76,7 +76,7 @@ export class Person {
   // *** personId ***********************************************************
 
   /**
-   * @returns {number | string} the unique identifier of the person
+   * @returns {number} the unique identifier of the person
    */
   get personId() {
     return this._personId;
