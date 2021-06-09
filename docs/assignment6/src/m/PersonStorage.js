@@ -52,11 +52,10 @@ class _PersonStorage {
   /**
    * updates the `Person` with the corresponding `slots.personId` and overwrites it's `name`.
    * TODO categories are not added explicitly | agent can be undefined though not mandatory
-   * @param {{personId: number | string, name: string, categoriesToAdd: number[], categoriesToRemove: number[], agent: number | string}} slots - Object creation slots
+   * @param {{personId: number | string, name: string, agent: number | string}} slots - Object creation slots
    */
   update(slots) {
-    const { personId, name, categoriesToAdd, categoriesToRemove, agent } =
-      slots;
+    const { personId, name, agent } = slots;
     var noConstraintViolated = true;
     var updatedProperties = [];
     const person = this._instances[personId];
