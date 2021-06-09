@@ -1,6 +1,6 @@
 import { FrozenValueConstraintViolation } from "../../lib/errorTypes.js";
 import { cloneObject, compareDates } from "../../lib/util.js";
-import { Movie } from "./Movie.js";
+import { Movie, MovieCategoryEL } from "./Movie.js";
 import { Person, PersonTypeEL } from "./Person.js";
 import { PersonStorage } from "./PersonStorage.js";
 
@@ -100,7 +100,7 @@ class MovieStorageClass {
       if (
         typeof director !== "object"
           ? director !== movie.director.personId
-          : director.personId
+          : director.personId !== movie.director.personId
       ) {
         movie.director = director;
         updatedProperties.push("director");
@@ -168,28 +168,6 @@ class MovieStorageClass {
   }
 
   /**
-   * updates all `Movie`s from the storage that match with the corresponding `filter` on the given slots.
-   * - eg.:
-   *   ```javascript
-   *   MovieStorage.updateAll(
-   *     {director: "Reddington"},
-   *     (movie) => movie.director.name === "Mr. Kaplan"
-   *   );
-   *   ```
-   * - the `filter` is optional and defaults to *all movies*
-   * @param {MovieUpdateSlots} slots to update on all (filtered) movies
-   * @param {(movie: Movie) => boolean} filter that the movies have to fulfill with `true` to be updated (defaults to all movies)
-   */
-  updateAll(slots, filter = (a) => true) {
-    for (const mKey in this._instances) {
-      if (Object.hasOwnProperty.call(this._instances, mKey)) {
-        const movie = this._instances[mKey];
-        filter(movie) && this.update({ movieId: movie.movieId, ...slots });
-      }
-    }
-  }
-
-  /**
    * deletes the `Movie` with the corresponding `movieId` from the Storage
    * @param {number | string} movieId
    */
@@ -207,18 +185,29 @@ class MovieStorageClass {
   }
 
   /**
-   * deletes all `Movie`s from the storage that match with the corresponding `filter`
-   * - eg.:
-   *   ```javascript
-   *   MovieStorage.destroyAll((movie) => movie.director.name === "Mr. Kaplan");
-   *   ```
-   * - the `filter` is optional and defaults to *all movies*
-   * @param {(movie: Movie) => boolean} filter that the movies have to fulfill with `true` to be deleted (defaults to all movies)
+   * checks for all movies if person is actor or director. if actor remove from
+   * movie. if director delete movie.
+   * Additionally checks if a movie is about this person and deletes it, because the about is
+   * mandatory for category BIOGRAPHY and categories can't be changed
+   * @param {Person} person of person to delete
    */
-  destroyAll(filter = (a) => true) {
-    for (const mKey in this._instances) {
-      if (Object.hasOwnProperty.call(this._instances, mKey)) {
-        filter(this._instances[mKey]) && delete this._instances[mKey];
+  destroyPersonRefs(person) {
+    for (const movie of Object.values(this.instances)) {
+      // check if director is person to delete
+      if (movie.director.personId === person.personId) {
+        // director is mandatory in movies
+        this.destroy(movie.movieId);
+      }
+      // check if actors include person to delete
+      if (Object.keys(movie.actors).includes(person.personId.toString())) {
+        movie.removeActor(person);
+      }
+      if (
+        movie.category === MovieCategoryEL["BIOGRAPHY"] &&
+        movie.about.personId === person.personId
+      ) {
+        // about is mandatory in biographies
+        this.destroy(movie.movieId);
       }
     }
   }
@@ -261,7 +250,9 @@ class MovieStorageClass {
       serialized = JSON.stringify(this._instances);
       localStorage.setItem(MOVIES_STORAGE_KEY, serialized);
     } catch (e) {
-      alert("Error when writing to Local Storage\n" + e);
+      alert(
+        "Error when writing to Local Storage in MovieStorage.persist()\n" + e
+      );
     }
 
     !error && console.info(`${nmrOfMovies} movies saved.`);

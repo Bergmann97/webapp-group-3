@@ -7,93 +7,100 @@ import { PersonStorage } from "../m/PersonStorage.js";
  */
 export function generateTestData() {
   try {
+    // add persons
     PersonStorage.add({
       personId: 16,
       name: "John Doe",
-      agent: null,
     });
     PersonStorage.add({
       personId: 17,
       name: "Jane Doe",
-      agent: null,
     });
     PersonStorage.add({
       personId: 1,
       name: "Stephen Frears",
-      agent: null,
     });
     PersonStorage.add({
       personId: 2,
       name: "George Lucas",
-      agent: null,
     });
     PersonStorage.add({
       personId: 3,
       name: "Quentin Terrentino",
-      agent: null,
     });
     PersonStorage.add({
       personId: 4,
       name: "Uma Thurman",
-      agent: 16,
     });
     PersonStorage.add({
       personId: 5,
       name: "John Travolta",
-      agent: null,
     });
     PersonStorage.add({
       personId: 6,
       name: "Ewan McGregor",
-      agent: null,
     });
     PersonStorage.add({
       personId: 7,
       name: "Natalie Portman",
-      agent: null,
     });
     PersonStorage.add({
       personId: 8,
       name: "Keanu Reeves",
-      agent: 17,
     });
     PersonStorage.add({
       personId: 9,
       name: "Russell Crowe",
-      agent: 17,
     });
     PersonStorage.add({
       personId: 10,
       name: "Seth MacFarlane",
-      agent: null,
     });
     PersonStorage.add({
       personId: 11,
       name: "Naomi Watts",
-      agent: null,
     });
     PersonStorage.add({
       personId: 12,
       name: "Daniel Minahan",
-      agent: null,
     });
     PersonStorage.add({
       personId: 13,
       name: "Ed Harris",
-      agent: 16,
     });
     PersonStorage.add({
       personId: 14,
       name: "Marc Forster",
-      agent: null,
     });
     PersonStorage.add({
       personId: 15,
       name: "John Forbes Nash",
-      agent: null,
+    });
+
+    // add agents to persons
+    PersonStorage.update({
+      personId: 4,
+      name: "Uma Thurman",
+      agent: 16,
+    });
+    PersonStorage.update({
+      personId: 8,
+      name: "Keanu Reeves",
+      agent: 17,
+    });
+    PersonStorage.update({
+      personId: 9,
+      name: "Russell Crowe",
+      agent: 17,
+    });
+    PersonStorage.update({
+      personId: 13,
+      name: "Ed Harris",
+      agent: 16,
     });
     PersonStorage.persist();
 
+    // add movies
     MovieStorage.add({
       movieId: 1,
       title: "Pulp Fiction",

@@ -28,7 +28,7 @@ class _PersonStorage {
   /**
    * adds a new Person created from the given `slots` to the collection of `Person`s
    * if the slots fulfill their constraints. Does nothing otherwise
-   * @param {{personId: number, name: string, agent: string | number}} slots - Object creation slots
+   * @param {import("./Person.js").PersonSlots} slots - Object creation slots
    */
   add(slots) {
     let person = null;
@@ -51,8 +51,7 @@ class _PersonStorage {
 
   /**
    * updates the `Person` with the corresponding `slots.personId` and overwrites it's `name`.
-   * TODO categories are not added explicitly | agent can be undefined though not mandatory
-   * @param {{personId: number | string, name: string, agent: number | string}} slots - Object creation slots
+   * @param {{personId: number | string | undefined, name: string | undefined, agent: Person | number | string | undefined}} slots - Object creation slots
    */
   update(slots) {
     const { personId, name, agent } = slots;
@@ -68,13 +67,24 @@ class _PersonStorage {
         updatedProperties.push("name");
       }
       // update agent
-      if (person.agent !== agent) {
-        // if a new agent is set add the category at the agent
-        if (agent) {
-          this._instances[agent].addCategory(PersonTypeEL["AGENT"]);
-        }
+      if (person.agent && agent === undefined) {
+        // delete old agent
+        person.agent = undefined;
+        updatedProperties.push("agent");
+      } else if (!person.agent && agent !== undefined) {
+        // add new agent
         person.agent = agent;
         updatedProperties.push("agent");
+      } else if (agent !== undefined) {
+        // change the agent if different
+        if (
+          typeof agent !== "object"
+            ? agent !== person.agent.personId
+            : agent.personId !== person.agent.personId
+        ) {
+          person.agent = agent;
+          updatedProperties.push("agent");
+        }
       }
     } catch (e) {
       console.warn(`${e.constructor.name}: ${e.message}`);
@@ -96,36 +106,18 @@ class _PersonStorage {
 
   /**
    * Deletes the `Person` with the corresponding `personId` from the Storage.
-   * Before that the callback `onDestroy` will be called with the corresponding `Person` so
-   * that the references on this person can be deleted from outside of this class.
-   * - eg. for deleting mandatory references:
-   *   ```javascript
-   *   PersonStorage.destroy(3,
-   *     (person) => MovieStorage.destroyAll(
-   *       (movie) => movie.director.name === person.name
-   *     )
-   *   );
-   *   ```
-   * - or for deleting optional / multiValued references.:
-   *   ```javascript
-   *   PersonStorage.destroy(3,
-   *     (person) => MovieStorage.updateAll(
-   *       {actorsToRemove: [person]},
-   *       (movie) => movie.actors[person.name] !== undefined
-   *     )
-   *   );
-   *   ```
+   *
    * @param {string} personId to delete
-   * @param {(person: Person) => void} onDestroy callback that can be used to delete references
    */
-  destroy(personId, onDestroy) {
-    if (this._instances[personId]) {
+  destroy(personId) {
+    const person = this._instances[personId];
+    if (person) {
       // if person is agent remove the agent ref for other persons
-      this.destroyAgentRef(this._instances[personId]);
-      // destroy references in movies with this person or delete movie if diretor
-      this.destroyRefInMovies(personId);
+      this.destroyAgentRef(person);
+      // destroy references in movies
+      MovieStorage.destroyPersonRefs(person);
       // delete the Person
-      console.info(`${this._instances[personId].toString()} deleted`);
+      console.info(`${person.toString()} deleted`);
       delete this._instances[personId];
       // calculate nextId when last id is destroyed
       personId === this._nextId.toString() && this.calculateNextId();
@@ -141,36 +133,11 @@ class _PersonStorage {
    */
   destroyAgentRef(person) {
     if (person.categories.includes(PersonTypeEL["AGENT"])) {
-      const keys = Object.keys(this._instances);
-      // iterate  thru all persons to search for this persons id as reference
-      for (const key of keys) {
-        const vglPerson = this._instances[key];
-        const agent = vglPerson.agent;
-        const agentID = typeof agent === "string" ? parseInt(agent) : agent;
-        if (agentID === person.personId) {
-          vglPerson.agent = null;
+      // iterate thru all persons to search for this persons as agent
+      for (const client of Object.values(this._instances)) {
+        if (client.agent && client.agent.personId === person.personId) {
+          delete client.agent;
         }
-      }
-    }
-  }
-
-  /**
-   * checks for all movies if person is actor or director. if actor remove from
-   * movie. if director delete movie.
-   * @param {string} personId of person to delete
-   */
-  destroyRefInMovies(personId) {
-    const keys = Object.keys(MovieStorage.instances);
-    for (const key of keys) {
-      const movie = MovieStorage.instances[key];
-      // check if director is person to delete
-      if (movie.director.personId === parseInt(personId)) {
-        MovieStorage.destroy(movie.movieId);
-      }
-      // check if actors include person to delete
-      const actors = Object.keys(movie.actors);
-      if (actors.includes(personId)) {
-        movie.removeActor(personId);
       }
     }
   }
@@ -189,48 +156,32 @@ class _PersonStorage {
       alert("Error when reading from Local Storage\n" + e);
     }
     if (serialized && serialized.length > 0) {
-      const persons = JSON.parse(serialized);
-      const keys = Object.keys(persons);
-      const agents = {};
-      console.info(`${keys.length} person loaded`, persons);
+      const parsons = JSON.parse(serialized);
+      const keys = Object.keys(parsons);
+      console.info(`${keys.length} persons loaded`, parsons);
+
       // create persons without agents
       for (const key of keys) {
-        const p = persons[key];
-        if (p.agent) {
-          agents[key] = p;
-        } else {
-          const person = Person.deserialize(p);
-          this._instances[key] = person;
+        const person = Person.deserialize(parsons[key]);
+        this._instances[key] = person;
 
-          // store the current highest id (for receiving the next id later)
-          if (typeof person.personId === "string") {
-            this.setNextId(
-              Math.max(parseInt(person.personId) + 1, this._nextId)
-            );
-          } else {
-            this.setNextId(Math.max(person.personId + 1, this._nextId));
+        // store the current highest id (for receiving the next id later)
+        this.setNextId(Math.max(person.personId + 1, this._nextId));
+      }
+
+      // set the agents references / categories
+      for (const key of keys) {
+        /** @type {string} */
+        const agentKey = parsons[key].agent;
+        if (agentKey) {
+          const client = this._instances[key];
+          const agent = this._instances[agentKey];
+          if (agent) {
+            // agent could have been deleted
+            client.agent = agent;
+            agent.addCategory(PersonTypeEL["AGENT"]);
           }
         }
-      }
-      // deserialize persons that hava agents
-      this.retrieveAgentPersons(agents);
-    }
-  }
-
-  /**
-   * deserializes all persons that have agents to avoid unknown persons
-   * @param {object} agents to retrieve
-   */
-  retrieveAgentPersons(agents) {
-    for (let p in agents) {
-      const person = Person.deserialize(agents[p]);
-      this._instances[person.agent].addCategory(PersonTypeEL["AGENT"]);
-      this._instances[p] = person;
-      // store the current highest id (for receiving the next id later)
-      if (typeof person.personId === "string") {
-        this.setNextId(Math.max(parseInt(person.personId) + 1, this._nextId));
-      } else {
-        this.setNextId(Math.max(person.personId + 1, this._nextId));
       }
     }
   }
@@ -246,7 +197,9 @@ class _PersonStorage {
       serialized = JSON.stringify(this._instances);
       localStorage.setItem(PERSON_STORAGE_KEY, serialized);
     } catch (e) {
-      alert("Error when writing to Local Storage\n" + e);
+      alert(
+        "Error when writing to Local Storage in PersonStorage.persist()\n" + e
+      );
     }
 
     !error && console.info(`${nmrOfPersons} person saved.`);

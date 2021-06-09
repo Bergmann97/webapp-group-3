@@ -298,14 +298,14 @@ updateMovieSelection.addEventListener("change", () => {
     updateTitleInput.value = movie.title;
     updateReleaseDateInput.valueAsDate = movie.releaseDate;
 
-    // set up the associated publisher selection list
+    // set up the associated director selection list
     fillSelectWithOptions(
       updateDirectorSelection,
       PersonStorage.instances,
       "name"
     );
 
-    // set up the associated authors selection widget
+    // set up the associated actors selection widget
     createMultipleChoiceWidget(
       updateActorsSelection,
       movie.actors,

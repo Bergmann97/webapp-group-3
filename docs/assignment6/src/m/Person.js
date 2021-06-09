@@ -20,9 +20,9 @@ export const PersonTypeEL = new Enumeration(["Director", "Actor", "Agent"]);
 /**
  * The primitive slots of the movie.
  * @typedef {object} PersonSlots
- * @prop {number} personId
+ * @prop {number |string} personId
  * @prop {string} name
- * @prop {number | string} agent
+ * @prop {Person | number | string} [agent]
  */
 
 export class Person {
@@ -45,7 +45,7 @@ export class Person {
   _categories;
   /** the Person that is the agent of this person
    * @private
-   * @type {number | string} id as Ref to Person
+   * @type {Person | undefined} id as Ref to Person
    */
   _agent;
 
@@ -60,8 +60,6 @@ export class Person {
       this.categories = [];
       if (agent) {
         this.agent = agent;
-      } else {
-        this.agent = null;
       }
     }
   }
@@ -78,7 +76,7 @@ export class Person {
   /**
    * sets a new personId
    * - @private this is just used internally though the id is frozen
-   * @param {number} personId
+   * @param {number | string} personId
    */
   set personId(personId) {
     const validationResult = Person.checkPersonId(personId);
@@ -247,18 +245,24 @@ export class Person {
 
   // *** agent ****************************************************************
 
-  /** @returns {number | string} personId of the person that is agent of this person */
+  /** @returns {Person | undefined} personId of the person that is agent of this person */
   get agent() {
     return this._agent;
   }
 
-  /** @param {number | string} agent as person to set as id as ref to person */
+  /** @param {Person | number | string} [agent] as person to set as id as ref to person */
   set agent(agent) {
-    const validationResult = Person.checkAgent(agent);
-    if (validationResult instanceof NoConstraintViolation) {
-      this._agent = agent;
+    if (agent) {
+      const agent_id = typeof agent !== "object" ? agent : agent.personId;
+      const validationResult = Person.checkAgent(agent_id);
+      if (validationResult instanceof NoConstraintViolation) {
+        this._agent = PersonStorage.instances[agent_id];
+        PersonStorage.instances[agent_id].addCategory(PersonTypeEL["AGENT"]);
+      } else {
+        throw validationResult;
+      }
     } else {
-      throw validationResult;
+      delete this._agent;
     }
   }
 
@@ -289,7 +293,8 @@ export class Person {
       person = new Person({
         personId: slots.personId,
         name: slots.name,
-        agent: slots.agent,
+        // the reference must be set later
+        agent: undefined,
       });
     } catch (e) {
       console.warn(
@@ -308,9 +313,20 @@ export class Person {
     const rec = {};
     for (let p of Object.keys(this)) {
       // copy only property slots with underscore prefix
-      if (p.charAt(0) === "_") {
-        // remove underscore prefix
-        rec[p.substr(1)] = this[p];
+      if (p.charAt(0) !== "_") continue;
+      switch (p) {
+        case "_categories":
+          // will not be persisted and restored after loading
+          break;
+        case "_agent":
+          // convert object reference to ID reference
+          if (this._agent) {
+            rec.agent = this._agent.personId;
+          }
+          break;
+        default:
+          // remove underscore prefix
+          rec[p.substr(1)] = this[p];
       }
     }
     return rec;
@@ -330,8 +346,7 @@ export class Person {
       }
     }
     if (this._agent) {
-      addString =
-        addString + `, agent: ${PersonStorage.instances[this.agent]._name} `;
+      addString = addString + `, agent: ${this._agent.toString()} `;
     }
 
     return (
