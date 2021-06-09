@@ -529,7 +529,7 @@ function fillListFromMap(listEl, eTbl, displayProp, enumEl) {
   for (const key of keys) {
     const listItemEl = document.createElement("li");
     if (enumEl) {
-      listItemEl.textContent = enumEl.labels[eTbl[key]];
+      listItemEl.textContent = enumEl.labels[eTbl[key] - 1];
     } else {
       listItemEl.textContent = eTbl[key][displayProp];
     }

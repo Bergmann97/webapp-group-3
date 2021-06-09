@@ -1,4 +1,5 @@
 import { cloneObject } from "../../lib/util.js";
+import { MovieStorage } from "./MovieStorage.js";
 import { Person, PersonTypeEL } from "./Person.js";
 
 /** key for the `localStorage[key]` for the `this.instances` */
@@ -27,7 +28,7 @@ class _PersonStorage {
   /**
    * adds a new Person created from the given `slots` to the collection of `Person`s
    * if the slots fulfill their constraints. Does nothing otherwise
-   * @param {{personId: number | string, name: string, categories: number[], agent: string | number}} slots - Object creation slots
+   * @param {{personId: number, name: string, agent: string | number}} slots - Object creation slots
    */
   add(slots) {
     let person = null;
@@ -68,14 +69,10 @@ class _PersonStorage {
         updatedProperties.push("name");
       }
       // update agent
-      // TODO agent is not mandatory so you can "delete person.agent"
       if (person.agent !== agent) {
-        if (person.agent) {
-          // TODO what if the person is an Agent for another Person
-          this._instances[person.agent].removeCategory(2);
-        }
+        // if a new agent is set add the category at the agent
         if (agent) {
-          this._instances[agent].addCategory(2);
+          this._instances[agent].addCategory(PersonTypeEL["AGENT"]);
         }
         person.agent = agent;
         updatedProperties.push("agent");
@@ -124,37 +121,58 @@ class _PersonStorage {
    */
   destroy(personId, onDestroy) {
     if (this._instances[personId]) {
-      // call onDestroy to make sure the references can be deleted to
-      // onDestroy(this._instances[personId]);
-
-      // remove the category of assozioated agent
-      // TODO what if the agent is an Agent for another Person
-      if (this._instances[personId].agent) {
-        this._instances[this._instances[personId].agent].removeCategory(2);
-      }
-
-      // remove the agent mark at if exists
-      // TODO why? If you delete the whole Person?
-      if (this._instances[personId].categories.includes(2)) {
-        const keys = Object.keys(this._instances);
-        for (const key of keys) {
-          const person = this._instances[key];
-          if (person.agent === personId) {
-            person.agent = null;
-          }
-        }
-      }
-
+      // if person is agent remove the agent ref for other persons
+      this.destroyAgentRef(this._instances[personId]);
+      // destroy references in movies with this person or delete movie if diretor
+      this.destroyRefInMovies(personId);
       // delete the Person
       console.info(`${this._instances[personId].toString()} deleted`);
       delete this._instances[personId];
-
       // calculate nextId when last id is destroyed
       personId === this._nextId.toString() && this.calculateNextId();
     } else {
-      console.info(
-        `There is no person with id ${personId} to delete from the database`
-      );
+      console.info(`There is no person with this id to delete f`);
+    }
+  }
+
+  /**
+   * checks if the person is an agent and deletes its id as references from all
+   * of its agents
+   * @param {Person} person to delete
+   */
+  destroyAgentRef(person) {
+    if (person.categories.includes(PersonTypeEL["AGENT"])) {
+      const keys = Object.keys(this._instances);
+      // iterate  thru all persons to search for this persons id as reference
+      for (const key of keys) {
+        const vglPerson = this._instances[key];
+        const agent = vglPerson.agent;
+        const agentID = typeof agent === "string" ? parseInt(agent) : agent;
+        if (agentID === person.personId) {
+          vglPerson.agent = null;
+        }
+      }
+    }
+  }
+
+  /**
+   * checks for all movies if person is actor or director. if actor remove from
+   * movie. if director delete movie.
+   * @param {string} personId of person to delete
+   */
+  destroyRefInMovies(personId) {
+    const keys = Object.keys(MovieStorage.instances);
+    for (const key of keys) {
+      const movie = MovieStorage.instances[key];
+      // check if director is person to delete
+      if (movie.director.personId === parseInt(personId)) {
+        MovieStorage.destroy(movie.movieId);
+      }
+      // check if actors include person to delete
+      const actors = Object.keys(movie.actors);
+      if (actors.includes(personId)) {
+        movie.removeActor(personId);
+      }
     }
   }
 
@@ -174,17 +192,46 @@ class _PersonStorage {
     if (serialized && serialized.length > 0) {
       const persons = JSON.parse(serialized);
       const keys = Object.keys(persons);
+      const agents = {};
       console.info(`${keys.length} person loaded`, persons);
+      // create persons without agents
       for (const key of keys) {
-        const person = Person.deserialize(persons[key]);
-        this._instances[key] = person;
-
-        // store the current highest id (for receiving the next id later)
-        if (typeof person.personId === "string") {
-          this.setNextId(Math.max(parseInt(person.personId) + 1, this._nextId));
+        const p = persons[key];
+        if (p.agent) {
+          agents[key] = p;
         } else {
-          this.setNextId(Math.max(person.personId + 1, this._nextId));
+          const person = Person.deserialize(p);
+          this._instances[key] = person;
+
+          // store the current highest id (for receiving the next id later)
+          if (typeof person.personId === "string") {
+            this.setNextId(
+              Math.max(parseInt(person.personId) + 1, this._nextId)
+            );
+          } else {
+            this.setNextId(Math.max(person.personId + 1, this._nextId));
+          }
         }
+      }
+      // deserialize persons that hava agents
+      this.retrieveAgentPersons(agents);
+    }
+  }
+
+  /**
+   * deserializes all persons that have agents to avoid unknown persons
+   * @param {object} agents to retrieve
+   */
+  retrieveAgentPersons(agents) {
+    for (let p in agents) {
+      const person = Person.deserialize(agents[p]);
+      this._instances[person.agent].addCategory(PersonTypeEL["AGENT"]);
+      this._instances[p] = person;
+      // store the current highest id (for receiving the next id later)
+      if (typeof person.personId === "string") {
+        this.setNextId(Math.max(parseInt(person.personId) + 1, this._nextId));
+      } else {
+        this.setNextId(Math.max(person.personId + 1, this._nextId));
       }
     }
   }
@@ -262,74 +309,11 @@ class _PersonStorage {
    * clears all `Person`s from the `this.instances`
    */
   clear() {
-    // if (confirm("Do you really want to delete all person?")) {
     try {
       this._instances = {};
       localStorage[PERSON_STORAGE_KEY] = "{}";
       this.setNextId(1);
       console.info("All person records cleared.");
-    } catch (e) {
-      console.warn(`${e.constructor.name}: ${e.message}`);
-    }
-    // }
-  }
-
-  /**
-   * creates a set of 4 `Person`s and stores it in the first 4 slots of the `this.instances`
-   * TODO This function is a duplication (app.mjs) and can be deleted
-   */
-  createTestData() {
-    try {
-      this._instances[1] = new Person({
-        personId: 1,
-        name: "Stephen Frears",
-        categories: [0],
-        agent: null,
-      });
-      this._instances[2] = new Person({
-        personId: 2,
-        name: "George Lucas",
-        categories: [0],
-        agent: null,
-      });
-      this._instances[3] = new Person({
-        personId: 3,
-        name: "Quentin Tarantino",
-        categories: [],
-        agent: null,
-      });
-      this._instances[5] = new Person({
-        personId: 5,
-        name: "Uma Thurman",
-        categories: [0],
-        agent: null,
-      });
-      this._instances[6] = new Person({
-        personId: 6,
-        name: "John Travolta",
-        categories: [0],
-        agent: null,
-      });
-      this._instances[7] = new Person({
-        personId: 7,
-        name: "Ewan McGregor",
-        categories: [0],
-        agent: null,
-      });
-      this._instances[8] = new Person({
-        personId: 8,
-        name: "Natalie Portman",
-        categories: [0],
-        agent: null,
-      });
-      this._instances[9] = new Person({
-        personId: 9,
-        name: "Keanu Reeves",
-        categories: [0],
-        agent: null,
-      });
-      this.setNextId(10);
-      this.persist();
     } catch (e) {
       console.warn(`${e.constructor.name}: ${e.message}`);
     }

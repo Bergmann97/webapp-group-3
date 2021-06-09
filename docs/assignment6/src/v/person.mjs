@@ -60,15 +60,6 @@ document.getElementById("retrieveAndListAll").addEventListener("click", () => {
     row.insertCell().textContent = person.personId.toString();
     row.insertCell().textContent = person.name;
 
-    // if (person.categories.length === 0) {
-    //   row.insertCell().textContent = "---";
-    // } else {
-    //   // row.insertCell().textContent = PersonTypeEL.stringify(person.categories);
-    //   row.insertCell().textContent = "da";
-    // }
-
-    var temp = person.categories;
-
     const categoryList = createListFromMap(
       person.categories,
       null,
@@ -140,9 +131,8 @@ const createButton = createPersonForm["create"];
 createButton.addEventListener("click", () => {
   /** @type {import("../m/Person.js").PersonSlots} */
   const slots = {
-    personId: createPersonIdInput.value,
+    personId: parseInt(createPersonIdInput.value),
     name: createPersonNameInput.value,
-    categories: [],
     agent: createPersonAgentSelect.value,
   };
 
@@ -204,6 +194,8 @@ updatePersonSelection.addEventListener("change", () => {
       } else {
         updateAgentSelection.selectedIndex = agentId;
       }
+    } else {
+      updateAgentSelection.selectedIndex = 0;
     }
     updateButton.disabled = false;
   } else {

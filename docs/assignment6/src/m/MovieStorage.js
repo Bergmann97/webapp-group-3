@@ -191,7 +191,7 @@ class MovieStorageClass {
 
   /**
    * deletes the `Movie` with the corresponding `movieId` from the Storage
-   * @param {string} movieId
+   * @param {number | string} movieId
    */
   destroy(movieId) {
     if (this._instances[movieId]) {

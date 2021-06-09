@@ -20,10 +20,8 @@ export const PersonTypeEL = new Enumeration(["Director", "Actor", "Agent"]);
 /**
  * The primitive slots of the movie.
  * @typedef {object} PersonSlots
- * @prop {number | string} personId
+ * @prop {number} personId
  * @prop {string} name
- * TODO this will be added by loading movies!
- * @prop {number[]} categories
  * @prop {number | string} agent
  */
 
@@ -55,16 +53,11 @@ export class Person {
    * CONSTRUCTOR
    * @param {PersonSlots} slots - The Object creation slots
    */
-  constructor({ personId, name, categories, agent }) {
+  constructor({ personId, name, agent }) {
     if (arguments.length > 0) {
       this.personId = personId;
       this.name = name;
-      if (categories) {
-        // TODO this will be added by loading movies
-        this.categories = categories;
-      } else {
-        this.categories = [];
-      }
+      this.categories = [];
       if (agent) {
         this.agent = agent;
       } else {
@@ -85,7 +78,7 @@ export class Person {
   /**
    * sets a new personId
    * - @private this is just used internally though the id is frozen
-   * @param {number | string} personId
+   * @param {number} personId
    */
   set personId(personId) {
     const validationResult = Person.checkPersonId(personId);
@@ -230,34 +223,6 @@ export class Person {
   }
 
   /**
-   * TODO this is obsolete. Categories will be "removed" implicitly while loading movies.
-   * This means if an actor / director / movie is removed (and so probably this category)
-   * then the corresponding category will not be set in the next Movie.retrieveAll()
-   *
-   * Reason: if you "check if the category can be removed" then you have to consequently
-   * iterate over all Movies and check if the Person is Director / Actor elsewhere
-   *
-   * check if the category can be removed
-   * @param {number | string} category to remove from the existing ones
-   */
-  removeCategory(category) {
-    if (isIntegerOrIntegerString(category)) {
-      const cat = typeof category === "string" ? parseInt(category) : category;
-      const valRes = Person.checkCategory(cat);
-      if (valRes instanceof NoConstraintViolation) {
-        // check if category is set, to remove, elsewise do nothing
-        if (!this._categories.includes(PersonTypeEL[cat])) {
-          this._categories.splice(this._categories.indexOf(cat), 1);
-        }
-      } else {
-        throw valRes;
-      }
-    } else {
-      return new RangeConstraintViolation("Invalid value for category!");
-    }
-  }
-
-  /**
    * checks if the given category is legit
    * @param {number | string} category to check
    * @returns a ConstraintViolation
@@ -324,8 +289,6 @@ export class Person {
       person = new Person({
         personId: slots.personId,
         name: slots.name,
-        // TODO this will be added by loading movies
-        categories: slots.categories,
         agent: slots.agent,
       });
     } catch (e) {
