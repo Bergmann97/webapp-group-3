@@ -114,6 +114,8 @@ document.getElementById("retrieveAndListAll").addEventListener("click", () => {
           row.insertCell().textContent = `Episode ${movie.episodeNo} of TV series "${movie.tvSeriesName}"`;
           break;
       }
+    } else {
+      row.insertCell().textContent = "";
     }
   }
 });
